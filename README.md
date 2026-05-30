@@ -95,9 +95,6 @@ python app.py
 ```
 Open the browser at `http://localhost:8503`.
 
-> If you still want the original Streamlit dashboard, it remains available at:
-> ```bash
-> streamlit run streamlit_app.py
 > ```
 
 ---
