@@ -94,9 +94,7 @@ Run the new interactive HTML dashboard powered by Flask:
 python app.py
 ```
 Open the browser at `http://localhost:8503`.
-uu9u9
 > ```
-
 ---
 
 ## Known Limitations
