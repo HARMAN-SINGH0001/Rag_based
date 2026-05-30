@@ -1,0 +1,5 @@
+ID: DOC-01
+Hotel: Grand Plaza Hotel
+Category: Hotel Descriptions
+Title: Grand Plaza Hotel - Overview & Star Rating
+Content: The Grand Plaza Hotel is a premium 5-star luxury establishment located in the heart of the metropolitan downtown district. Representing the pinnacle of urban sophistication, the hotel features modern glass architecture, a magnificent 3-story marble lobby, and an elegant botanical indoor garden. Designed for both high-profile business executives and discerning leisure travelers, the Grand Plaza brand stands for uncompromising quality, refined aesthetics, and personalized service. The ambiance is formal yet warm, offering guests a peaceful sanctuary from the bustling city outside.

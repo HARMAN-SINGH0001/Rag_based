@@ -1,0 +1,5 @@
+ID: DOC-39
+Hotel: Seaside Haven Resort
+Category: Location Details
+Title: Seaside Haven - Beach Location & Waterfront Access
+Content: Seaside Haven Resort is located right on the beach, situated directly on the shores of Silver Beach, just 20 meters from the ocean tide line. The property overlooks a quiet cove, providing calm waters for swimming. The famous Seaside Boardwalk, lined with seafood restaurants, artisan shops, and bicycle rental stations, begins right at the edge of the resort property, offering direct pedestrian access.

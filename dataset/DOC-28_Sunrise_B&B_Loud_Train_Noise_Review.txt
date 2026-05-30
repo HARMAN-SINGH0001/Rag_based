@@ -1,0 +1,5 @@
+ID: DOC-28
+Hotel: Sunrise B&B
+Category: Guest Reviews
+Title: Sunrise B&B - Loud Train Noise Review
+Content: Review Rating: 3/5. 'The breakfast was delicious and the bed was comfortable. However, the B&B is located right next to the active train tracks, and trains run all night. It was very loud, and I had trouble sleeping. If you are a light sleeper, bring earplugs. Otherwise, the hospitality and price are very good.'

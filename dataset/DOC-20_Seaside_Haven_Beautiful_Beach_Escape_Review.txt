@@ -1,0 +1,5 @@
+ID: DOC-20
+Hotel: Seaside Haven Resort
+Category: Guest Reviews
+Title: Seaside Haven - Beautiful Beach Escape Review
+Content: Review Rating: 5/5. 'This place is heaven! The resort is beautiful, and our room opened right onto the sand. The ocean view from the balcony was stunning. The staff was incredibly warm and helpful, organizing a bonfire for us on the beach. Excellent reviews are totally justified—this is the perfect beach getaway. I will definitely be returning next year!'

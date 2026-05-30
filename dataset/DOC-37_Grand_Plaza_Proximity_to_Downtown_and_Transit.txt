@@ -1,0 +1,5 @@
+ID: DOC-37
+Hotel: Grand Plaza Hotel
+Category: Location Details
+Title: Grand Plaza - Proximity to Downtown & Transit
+Content: The Grand Plaza Hotel is situated in the downtown financial core, just a 5-minute walk from the Central Subway Station. The historic City Museum, the Opera House, and the Luxury Shopping Promenade are all within a 1-mile radius. Taxis and ride-sharing services are readily available outside the lobby. The airport express train connects the Central Subway Station directly to the International Airport in 25 minutes.

@@ -1,0 +1,5 @@
+ID: DOC-07
+Hotel: Seaside Haven Resort
+Category: Hotel Descriptions
+Title: Seaside Haven - Wellness & Star-Rated Experience
+Content: As an award-winning boutique resort, Seaside Haven blends high-end comfort with environmental stewardship. The property utilizes sustainable energy and serves organic, locally sourced seafood. The resort is certified 4-star and features a private beach strip, an infinity edge pool looking out onto the ocean, and a dedicated team of activity coordinators to ensure a memorable vacation.

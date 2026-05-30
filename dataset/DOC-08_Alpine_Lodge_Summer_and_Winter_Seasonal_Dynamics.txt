@@ -1,0 +1,5 @@
+ID: DOC-08
+Hotel: Alpine Lodge
+Category: Hotel Descriptions
+Title: Alpine Lodge - Summer & Winter Seasonal Dynamics
+Content: Alpine Lodge operates dynamically across the seasons. In winter, it transforms into a cozy ski-in/ski-out lodge with ski racks and a mudroom. In summer, it pivots to a hiking and mountain biking retreat, offering guided nature trails and equipment storage. This flexible positioning makes it a year-round destination for nature-oriented holidaymakers.

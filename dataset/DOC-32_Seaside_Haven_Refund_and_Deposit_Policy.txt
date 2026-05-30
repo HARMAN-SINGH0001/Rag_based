@@ -1,0 +1,5 @@
+ID: DOC-32
+Hotel: Seaside Haven Resort
+Category: Policies
+Title: Seaside Haven - Refund & Deposit Policy
+Content: A deposit equivalent to one night's room charge is required at the time of booking for Seaside Haven Resort. Full refunds are processed if the reservation is canceled at least 7 days before the arrival date. For cancellations made within the 7-day window, the deposit is forfeited. Refunds will be issued back to the original form of payment within 5 to 7 business days.

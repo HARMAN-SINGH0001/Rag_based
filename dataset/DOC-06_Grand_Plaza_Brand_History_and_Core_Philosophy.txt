@@ -1,0 +1,5 @@
+ID: DOC-06
+Hotel: Grand Plaza Hotel
+Category: Hotel Descriptions
+Title: Grand Plaza - Brand History & Core Philosophy
+Content: Founded in 1992, the Grand Plaza Hotel brand has always been synonymous with absolute luxury and top-tier hospitality. Our philosophy revolves around 'anticipatory service'—meeting guest needs before they are explicitly expressed. The hotel boasts curated fine art collections in every corridor, bespoke custom fragrances, and classical piano music in the lounge, ensuring a prestigious experience that matches its high-end brand reputation.

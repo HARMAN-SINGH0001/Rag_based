@@ -1,0 +1,5 @@
+ID: DOC-11
+Hotel: Seaside Haven Resort
+Category: Amenities
+Title: Seaside Haven - Coastal Activities & Beach Amenities
+Content: Guests at Seaside Haven Resort enjoy exclusive access to a private sandy beach equipped with complimentary lounge chairs, beach umbrellas, and private cabanas. The resort offers free water sports gear, including paddleboards, kayaks, and snorkeling equipment. The wellness pavilion includes an outdoor ocean-view yoga deck and the 'Sea Breeze Spa' specializing in thalassotherapy. The resort features two restaurants: a beachfront seafood grill and an open-air juice bar. Rooms feature private ocean-facing balconies, hammock swings, ceiling fans, free WiFi, and organic toiletries.

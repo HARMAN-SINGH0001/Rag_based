@@ -1,0 +1,5 @@
+ID: DOC-16
+Hotel: Grand Plaza Hotel
+Category: Amenities
+Title: Grand Plaza - Premium Room Features
+Content: The rooms at Grand Plaza Hotel are designed to pamper. Each suite includes a king-size pillow-top bed, a dedicated writing desk with ergonomic seating, a stocked minibar, a Nespresso machine, and a multi-jet rainfall shower. Free WiFi is standard across all rooms, and a complimentary breakfast buffet is included for all bookings.

@@ -1,0 +1,5 @@
+ID: DOC-17
+Hotel: Hotel X
+Category: Amenities
+Title: Hotel X - Meeting Rooms & Fitness Facilities
+Content: Hotel X has three high-tech boardroom style meeting rooms equipped with interactive whiteboards and 4K displays. The hotel also features a modern fitness studio focusing on high-intensity interval training (HIIT) equipment and stationary bikes. While the hotel offers free WiFi, breakfast is paid.

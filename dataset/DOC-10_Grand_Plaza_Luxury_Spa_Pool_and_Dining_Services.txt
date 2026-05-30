@@ -1,0 +1,5 @@
+ID: DOC-10
+Hotel: Grand Plaza Hotel
+Category: Amenities
+Title: Grand Plaza - Luxury Spa, Pool & Dining Services
+Content: The Grand Plaza Hotel offers world-class wellness facilities including 'The Obsidian Spa,' which features custom massage therapies, a Finnish sauna, and a steam bath. Guests can swim in the heated indoor lap pool under a glass dome or work out in the fully equipped 24-hour fitness center. Additionally, the hotel offers multiple high-end dining options: a Michelin-starred French restaurant, a sleek cocktail bar, and full-service room dining. All rooms are equipped with free high-speed WiFi, smart flat-screen TVs, automated climate control, marble bathrooms, premium bathrobes, and a complimentary hot breakfast buffet served daily in the main hall.

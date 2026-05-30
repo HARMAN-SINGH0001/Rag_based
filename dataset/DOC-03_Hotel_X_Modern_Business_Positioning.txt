@@ -1,0 +1,5 @@
+ID: DOC-03
+Hotel: Hotel X
+Category: Hotel Descriptions
+Title: Hotel X - Modern Business Positioning
+Content: Hotel X is a contemporary 4-star business-first hotel tailored for digital nomads, corporate professionals, and tech travelers. Boasting sleek, minimalist architecture and integrated smart-room technologies, Hotel X offers a productive and efficient environment. The brand positioning centers on tech-forward convenience, high-speed connectivity, and modern comfort. The atmosphere is energetic and minimalist, with shared coworking spaces in the lobby, automated check-in kiosks, and quiet meeting corners.

@@ -1,0 +1,5 @@
+ID: DOC-29
+Hotel: Grand Plaza Hotel
+Category: Policies
+Title: Grand Plaza - Check-in, Check-out & General Hours
+Content: Standard check-in time at the Grand Plaza Hotel begins at 2:00 PM. Guests arriving earlier may store their luggage at the concierge desk, and early check-in is subject to room availability and a surcharge. Check-out time is strictly at 11:00 AM. Late check-out requests must be approved by the front desk in advance and may incur a fee equivalent to half a day's room rate. Quiet hours are enforced between 10:00 PM and 7:00 AM.

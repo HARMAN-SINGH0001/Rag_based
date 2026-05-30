@@ -1,0 +1,5 @@
+ID: DOC-19
+Hotel: Grand Plaza Hotel
+Category: Guest Reviews
+Title: Grand Plaza - Neutral Business Stay Review
+Content: Review Rating: 3/5. 'The Grand Plaza is clean and professionally run, but it felt a bit cold and business-like. The dinner at the Michelin restaurant was overpriced, and the pool area was crowded. WiFi and breakfast were free, which was nice, but for the steep price, I expected a bit more character. Good, but not amazing.'

@@ -1,0 +1,5 @@
+ID: DOC-41
+Hotel: Hotel X
+Category: Location Details
+Title: Hotel X - Proximity to Convention Center & CBD
+Content: Hotel X is strategically located in the tech corridor of the Central Business District (CBD). It is positioned directly across the street from the City Convention Center (only 100 meters away), making it extremely convenient for conference attendees. It is surrounded by modern office blocks, quick-service cafes, and shared workspace buildings.

@@ -1,0 +1,5 @@
+ID: DOC-13
+Hotel: Alpine Lodge
+Category: Amenities
+Title: Alpine Lodge - Hearth & Outdoor Comforts
+Content: Amenities at Alpine Lodge center on rustic comfort and outdoor recovery. The centerpiece of the lodge is the great lounge, featuring a massive stone fireplace where hot cocoa is served nightly. Outdoors, guests can soak in a heated cedar hot tub overlooking the forest. The lodge offers ski and snowboard storage lockers, boot dryers, and mountain bike rentals. Rooms are equipped with natural wool blankets, wooden rocking chairs, tea/coffee making stations, and satellite television. WiFi is available in the main lodge, but is intermittent in the outer cabins.

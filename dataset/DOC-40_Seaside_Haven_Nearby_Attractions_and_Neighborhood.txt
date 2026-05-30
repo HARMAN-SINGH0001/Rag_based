@@ -1,0 +1,5 @@
+ID: DOC-40
+Hotel: Seaside Haven Resort
+Category: Location Details
+Title: Seaside Haven - Nearby Attractions & Neighborhood
+Content: Located in a scenic coastal neighborhood, Seaside Haven Resort is 1.5 miles from the historic Point Lookout Lighthouse, a popular spot for sunsets and whale watching. The local Seafood Market, where local fishermen bring in the daily catch, is a 10-minute walk down the beach. The resort is 15 miles from the regional airport, and a shuttle service is available for guests.

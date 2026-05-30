@@ -1,0 +1,5 @@
+ID: DOC-43
+Hotel: Sunrise B&B
+Category: Location Details
+Title: Sunrise B&B - Historic Town Center & Sightseeing
+Content: Sunrise B&B is located in the charming historic district of the town, surrounded by cobbled streets and historical buildings. The Town Museum and the local Craft Market are a 10-minute walk away. Guests can find several traditional pubs and cozy family-run restaurants within three blocks of the house.

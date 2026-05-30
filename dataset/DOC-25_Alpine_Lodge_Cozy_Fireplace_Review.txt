@@ -1,0 +1,5 @@
+ID: DOC-25
+Hotel: Alpine Lodge
+Category: Guest Reviews
+Title: Alpine Lodge - Cozy Fireplace Review
+Content: Review Rating: 5/5. 'We had a lovely winter weekend at Alpine Lodge! Sitting by the massive stone fireplace in the evening with hot chocolate was magical. The room was cozy with warm wood paneling, and the outdoor hot tub under the stars was incredible. Perfect place to relax after skiing. We loved it!'

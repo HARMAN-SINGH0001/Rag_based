@@ -1,0 +1,5 @@
+ID: DOC-34
+Hotel: Hotel X
+Category: Policies
+Title: Hotel X - Security & ID Verification Norms
+Content: At Hotel X, security and safety are paramount. All guests, including additional occupants, must present a valid government-issued photo ID (passport, driver's license, or national ID card) at check-in. A physical credit card matching the guest name must be presented for a temporary incidental hold of $100. Digital copies or photo-scans of IDs are strictly not accepted.

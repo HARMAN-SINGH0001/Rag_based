@@ -1,0 +1,5 @@
+ID: DOC-27
+Hotel: Sunrise B&B
+Category: Guest Reviews
+Title: Sunrise B&B - Wonderful Homemade Breakfast Review
+Content: Review Rating: 5/5. 'What a lovely place! The host, Sarah, made us feel so welcome. The B&B is close to the train station, and our room was clean and charming. The absolute highlight was the homemade pancake breakfast in the morning—best pancakes I have ever had! The garden is beautiful, and WiFi is free. Shared bathrooms were clean. Excellent value!'

@@ -1,0 +1,5 @@
+ID: DOC-33
+Hotel: Hotel X
+Category: Policies
+Title: Hotel X - Cancellation & Late Arrival Policy
+Content: The cancellation policy of Hotel X allows guests to cancel their booking free of charge up to 48 hours prior to their scheduled check-in time (which is 3:00 PM). If a booking is canceled within the 48-hour window before arrival, or in case of a no-show, the hotel will charge a penalty fee equivalent to the full cost of the first night's room rate plus applicable local taxes. Non-refundable promotional bookings are excluded from this policy and cannot be refunded or modified.

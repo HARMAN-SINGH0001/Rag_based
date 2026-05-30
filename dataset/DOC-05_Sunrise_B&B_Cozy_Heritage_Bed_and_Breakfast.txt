@@ -1,0 +1,5 @@
+ID: DOC-05
+Hotel: Sunrise B&B
+Category: Hotel Descriptions
+Title: Sunrise B&B - Cozy Heritage Bed & Breakfast
+Content: Sunrise B&B is a charming, budget-friendly heritage bed and breakfast housed in a restored 19th-century Victorian townhouse. Offering a cozy, home-away-from-home atmosphere, this property is decorated with antique wooden furniture, vintage wallpaper, and soft lace curtains. It focuses on personalized hospitality, affordable rates, and local charm. The ambiance is peaceful, intimate, and friendly, appealing to solo backpackers, couples, and budget-conscious history buffs.

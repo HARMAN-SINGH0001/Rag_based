@@ -1,0 +1,5 @@
+ID: DOC-44
+Hotel: Sunrise B&B
+Category: Location Details
+Title: Sunrise B&B - Rail Links & Local Transport
+Content: Located just 150 meters from the Central Rail Terminal, Sunrise B&B offers exceptionally easy transport links for travelers arriving by train. Local buses stop right at the corner of the street, connecting guests to nearby scenic viewpoints and neighboring villages. The proximity to the station makes it a highly convenient hub for regional exploration.

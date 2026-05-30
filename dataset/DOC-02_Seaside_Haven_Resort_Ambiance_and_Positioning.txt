@@ -1,0 +1,5 @@
+ID: DOC-02
+Hotel: Seaside Haven Resort
+Category: Hotel Descriptions
+Title: Seaside Haven Resort - Ambiance & Positioning
+Content: Seaside Haven Resort is a boutique 4-star seaside property positioned as a relaxing coastal getaway. The resort features low-rise Mediterranean-style villa architecture with whitewashed walls, terracotta tile roofs, and beautiful cascading bougainvillea. With a laid-back, luxurious, and family-friendly ambiance, Seaside Haven focus on wellness, nature, and recreation. It is ideal for vacationers seeking a tranquil retreat where they can listen to the waves and enjoy spectacular sunset views.

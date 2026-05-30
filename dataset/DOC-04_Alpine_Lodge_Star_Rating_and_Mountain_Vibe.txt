@@ -1,0 +1,5 @@
+ID: DOC-04
+Hotel: Alpine Lodge
+Category: Hotel Descriptions
+Title: Alpine Lodge - Star Rating & Mountain Vibe
+Content: Alpine Lodge is a charming 3-star rustic mountain lodge set against the picturesque backdrop of snow-capped peaks. The property is constructed entirely of local timber and stone, evoking a warm, traditional cabin feel. Catering to outdoor enthusiasts, skiers, and nature lovers, Alpine Lodge features stone fireplaces, exposed wood beams, and cozy wool furnishings. The ambiance is snug, informal, and deeply connected to the wilderness, providing a perfect base camp for seasonal alpine adventures.

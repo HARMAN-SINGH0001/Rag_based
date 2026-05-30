@@ -1,0 +1,5 @@
+ID: DOC-42
+Hotel: Alpine Lodge
+Category: Location Details
+Title: Alpine Lodge - Ski Lifts & National Park Trails
+Content: Alpine Lodge is nestled in the mountain pine forests, located just 200 yards from the Peak Express Ski Lift, offering quick walking access to the slopes. The lodge is adjacent to the boundary of the Pine Valley National Park, and several popular hiking trails—ranging from easy forest walks to strenuous peak climbs—begin directly behind the lodge's main cabin.

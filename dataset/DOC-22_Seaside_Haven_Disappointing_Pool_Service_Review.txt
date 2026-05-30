@@ -1,0 +1,5 @@
+ID: DOC-22
+Hotel: Seaside Haven Resort
+Category: Guest Reviews
+Title: Seaside Haven - Disappointing Pool Service Review
+Content: Review Rating: 3/5. 'The location next to the beach is absolutely gorgeous, and the rooms are nicely decorated. However, the poolside service was extremely slow, and the main pool was overcrowded with children. The room WiFi was also quite spotty. Go for the beach, but don't expect fast service.'

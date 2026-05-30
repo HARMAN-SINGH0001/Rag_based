@@ -1,0 +1,5 @@
+ID: DOC-31
+Hotel: Seaside Haven Resort
+Category: Policies
+Title: Seaside Haven - Pet & Animal Policy
+Content: Seaside Haven Resort is a pet-friendly property that welcomes well-behaved dogs. Guests traveling with pets must notify the resort at the time of booking. A maximum of two dogs per room is permitted, with a weight limit of 25 pounds per dog. A non-refundable pet cleaning fee of $75 per stay will be applied to the bill. Pets are not permitted in the dining areas or pool deck, and must be kept on a leash in all common outdoor areas.

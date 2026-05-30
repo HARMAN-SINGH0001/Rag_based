@@ -1,0 +1,5 @@
+ID: DOC-12
+Hotel: Hotel X
+Category: Amenities
+Title: Hotel X - Coworking, Smart Tech & Connectivity
+Content: Hotel X provides a full-scale executive business center, shared hot-desking zones, and private video-conferencing pods. The building is equipped with ultra-fast enterprise-grade fiber WiFi throughout the property. Rooms feature smart-room automations controlled via a dedicated mobile app, including keyless entry, lighting presets, and smart temperature adjustments. Other amenities include a 24/7 grab-and-go pantry, charging stations for electric vehicles, and an express laundry service. WiFi is complimentary, but breakfast is not included in the standard room rate.

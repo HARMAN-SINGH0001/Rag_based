@@ -1,0 +1,5 @@
+ID: DOC-23
+Hotel: Hotel X
+Category: Guest Reviews
+Title: Hotel X - Efficient and Productive Review
+Content: Review Rating: 4/5. 'Hotel X was perfect for my business trip. The check-in was automated and took 30 seconds via the kiosk. The coworking area in the lobby is excellent, with high-speed internet and comfortable chairs. The room is small and minimalist but very clean and quiet. Excellent price-to-quality ratio for professionals.'

@@ -1,0 +1,5 @@
+ID: DOC-09
+Hotel: Hotel X
+Category: Hotel Descriptions
+Title: Hotel X - Design Concept & Target Demographic
+Content: Hotel X targets the modern generation of travelers who value efficiency over traditional luxury. Designed by award-winning architects, the layout maximizes natural light and utilizes ergonomic furniture. The public lounges double as open networking hubs, attracting local entrepreneurs, freelancers, and global business travelers alike.

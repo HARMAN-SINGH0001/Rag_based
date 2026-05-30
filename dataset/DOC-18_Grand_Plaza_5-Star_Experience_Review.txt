@@ -1,0 +1,5 @@
+ID: DOC-18
+Hotel: Grand Plaza Hotel
+Category: Guest Reviews
+Title: Grand Plaza - 5-Star Experience Review
+Content: Review Rating: 5/5. 'An absolutely outstanding experience at the Grand Plaza! The service was impeccable from the moment the doorman greeted us. The room was immaculate and quiet, and the marble bathroom felt like a personal spa. The complimentary breakfast buffet had an incredible selection of hot dishes, pastries, and fresh juices. Free WiFi was fast enough for my video conference calls. Highly recommend for luxury travelers!'

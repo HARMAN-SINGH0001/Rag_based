@@ -1,0 +1,5 @@
+ID: DOC-24
+Hotel: Hotel X
+Category: Guest Reviews
+Title: Hotel X - Clean But Noisy Review
+Content: Review Rating: 2/5. 'The hotel itself is modern and very clean, but my room faced a noisy street, and the thin windows let in all the traffic sounds. The smart app for keyless entry crashed twice, and I had to go to the front desk. Also, note that breakfast is not free here, and it is quite basic for the price. Not a great stay.'

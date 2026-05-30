@@ -1,0 +1,5 @@
+ID: DOC-38
+Hotel: Grand Plaza Hotel
+Category: Location Details
+Title: Grand Plaza - Surrounding District & Dining Hubs
+Content: Located adjacent to the financial hub, the Grand Plaza is surrounded by upscale dining establishments, rooftop cocktail bars, and international corporate headquarters. It is located exactly 0.5 miles from the Municipal Park, which offers walking trails, lake boating, and botanical glasshouses, providing a green escape within the city.

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StayChat AI Hotel RAG</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero-panel">
+      <div>
+        <h1>StayChat AI</h1>
+        <p class="hero-copy">Hotel RAG Q&A — interactive HTML interface with strict retrieval grounding.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="pill-button" id="sample-q1">WiFi + Breakfast</button>
+        <button class="pill-button" id="sample-q2">Hotel X Cancellation</button>
+        <button class="pill-button" id="sample-q3">Beach Recommendation</button>
+      </div>
+    </header>
+
+    <main class="grid-layout">
+      <section class="main-card query-card">
+        <div class="section-header">
+          <div>
+            <h2>Ask a hotel question</h2>
+            <p>Type a query about hotels, amenities, policies, location, or reviews. The system uses semantic retrieval to ground answers.</p>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="question">Question</label>
+          <textarea id="question" rows="4" placeholder="Which hotels have free WiFi and complimentary breakfast?"></textarea>
+        </div>
+
+        <div class="control-grid">
+          <div class="control-group">
+            <label for="embedding-backend">Embedding Backend</label>
+            <select id="embedding-backend">
+              <option>HuggingFace (local)</option>
+              <option>Ollama (local)</option>
+              <option>OpenAI API</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="llm-backend">LLM Backend</label>
+            <select id="llm-backend">
+              <option>Mock (High-Fidelity)</option>
+              <option>Ollama (tinyllama:chat)</option>
+              <option>OpenAI API</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="topk">Top-K</label>
+            <input id="topk" type="number" min="1" max="8" value="3" />
+          </div>
+          <div class="control-group">
+            <label for="threshold">Confidence Threshold</label>
+            <input id="threshold" type="number" min="0.1" max="2" step="0.05" value="0.75" />
+          </div>
+        </div>
+
+        <div class="control-grid">
+          <div class="control-group full-width">
+            <label for="openai-key">OpenAI API Key (optional)</label>
+            <input id="openai-key" type="password" placeholder="sk-..." />
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button id="submit-button" class="primary-button">Generate Answer</button>
+          <span id="status-label" class="status-label">Ready.</span>
+        </div>
+      </section>
+
+      <section class="main-card output-card">
+        <h2>Answer</h2>
+        <div id="answer-card" class="answer-card empty-state">Submit a query to see the grounded hotel answer.</div>
+
+        <div class="meta-panel">
+          <div class="meta-item"><span>Top-k</span><strong id="meta-topk">3</strong></div>
+          <div class="meta-item"><span>Best Distance</span><strong id="meta-distance">—</strong></div>
+          <div class="meta-item"><span>Threshold Blocked</span><strong id="meta-blocked">No</strong></div>
+        </div>
+
+        <h3 class="section-title">Retrieved Chunks</h3>
+        <div id="chunks-container" class="chunks-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const questionInput = document.getElementById('question');
+    const submitButton = document.getElementById('submit-button');
+    const answerCard = document.getElementById('answer-card');
+    const statusLabel = document.getElementById('status-label');
+    const chunksContainer = document.getElementById('chunks-container');
+    const metaTopk = document.getElementById('meta-topk');
+    const metaDistance = document.getElementById('meta-distance');
+    const metaBlocked = document.getElementById('meta-blocked');
+
+    document.getElementById('sample-q1').addEventListener('click', () => {
+      questionInput.value = 'Which hotels have free WiFi and complimentary breakfast?';
+    });
+    document.getElementById('sample-q2').addEventListener('click', () => {
+      questionInput.value = 'What is the cancellation policy of Hotel X?';
+    });
+    document.getElementById('sample-q3').addEventListener('click', () => {
+      questionInput.value = 'Suggest a hotel with excellent reviews near the beach.';
+    });
+
+    submitButton.addEventListener('click', async () => {
+      const question = questionInput.value.trim();
+      if (!question) {
+        statusLabel.innerText = 'Please enter a question first.';
+        statusLabel.classList.add('status-warning');
+        return;
+      }
+
+      const payload = {
+        question,
+        embedding_backend: document.getElementById('embedding-backend').value,
+        llm_backend: document.getElementById('llm-backend').value,
+        k: Number(document.getElementById('topk').value),
+        hallucination_control: true,
+        confidence_threshold: Number(document.getElementById('threshold').value),
+        openai_api_key: document.getElementById('openai-key').value || null
+      };
+
+      answerCard.classList.add('loading');
+      answerCard.innerHTML = '<div class="loader"></div>Generating response...';
+      statusLabel.innerText = 'Query in progress...';
+      statusLabel.className = 'status-label';
+      chunksContainer.innerHTML = '';
+      metaTopk.innerText = payload.k;
+      metaDistance.innerText = '—';
+      metaBlocked.innerText = 'No';
+
+      try {
+        const response = await fetch('/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Unknown server error');
+        }
+
+        const data = await response.json();
+        answerCard.classList.remove('loading');
+        renderResult(data);
+        statusLabel.innerText = 'Answer generated successfully.';
+      } catch (error) {
+        answerCard.classList.remove('loading');
+        answerCard.innerHTML = `<div class="error-box">${error.message}</div>`;
+        statusLabel.innerText = 'Error generating response.';
+        statusLabel.classList.add('status-error');
+      }
+    });
+
+    function renderResult(data) {
+      if (data.threshold_blocked) {
+        metaBlocked.innerText = 'Yes';
+        answerCard.innerHTML = `<div class="warning-box">The query was blocked because the retrieval confidence fell below the threshold. No answer was generated to prevent hallucination.</div>`;
+      } else {
+        metaBlocked.innerText = 'No';
+        answerCard.innerHTML = `<div class="answer-copy">${data.answer.replace(/\n/g, '<br/>')}</div>`;
+      }
+      metaDistance.innerText = data.best_distance.toFixed(4);
+
+      if (Array.isArray(data.retrieved_chunks)) {
+        chunksContainer.innerHTML = data.retrieved_chunks.map((chunk, index) => {
+          return `
+            <article class="chunk-card">
+              <div class="chunk-info">
+                <span class="chip">${chunk.doc_id}</span>
+                <h4>${chunk.title}</h4>
+                <div class="chunk-meta">${chunk.hotel} • ${chunk.category} • Distance: ${chunk.distance.toFixed(4)}</div>
+              </div>
+              <details>
+                <summary>View chunk text</summary>
+                <p>${chunk.verbatim_content}</p>
+              </details>
+            </article>
+          `;
+        }).join('');
+      }
+    }
+  </script>
+</body>
+</html>

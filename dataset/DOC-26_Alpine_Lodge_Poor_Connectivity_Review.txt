@@ -1,0 +1,5 @@
+ID: DOC-26
+Hotel: Alpine Lodge
+Category: Guest Reviews
+Title: Alpine Lodge - Poor Connectivity Review
+Content: Review Rating: 2/5. 'The mountains are beautiful, but the lodge was a bit too rustic. There was no cell signal in our cabin, and the WiFi in the main lodge was slow and kept disconnecting. The floors were very creaky, and the heating took a long time to warm up. Only stay here if you want to be completely disconnected.'

@@ -1,0 +1,5 @@
+ID: DOC-14
+Hotel: Sunrise B&B
+Category: Amenities
+Title: Sunrise B&B - Homemade Dining & Cozy Conveniences
+Content: Sunrise B&B prides itself on its hospitality, offering a complimentary home-cooked breakfast every morning, featuring signature buttermilk pancakes, fresh fruit, and organic local coffee. The B&B features a beautiful English cottage garden with outdoor seating where guests can read or drink tea. Inside, the guest parlor offers board games, a book exchange shelf, and free WiFi throughout the house. Rooms are individually heated and include comfortable orthopedic mattresses and soft cotton linens, though bathrooms are shared on each floor.

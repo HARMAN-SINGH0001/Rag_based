@@ -1,0 +1,5 @@
+ID: DOC-15
+Hotel: Sunrise B&B
+Category: Amenities
+Title: Sunrise B&B - Complimentary High-Speed Internet & Breakfast
+Content: At Sunrise B&B, we believe in keeping travelers connected and well-fed. Every reservation comes with free high-speed wireless internet (WiFi) accessible throughout all guest rooms and common areas. In addition, guests receive our highly-rated complimentary hot breakfast cooked to order every morning, which includes fresh eggs, local jam, pancakes, and selection of herbal teas.

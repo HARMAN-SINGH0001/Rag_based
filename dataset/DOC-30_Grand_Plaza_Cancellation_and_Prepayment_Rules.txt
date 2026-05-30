@@ -1,0 +1,5 @@
+ID: DOC-30
+Hotel: Grand Plaza Hotel
+Category: Policies
+Title: Grand Plaza - Cancellation & Prepayment Rules
+Content: Reservations at the Grand Plaza Hotel must be guaranteed with a valid credit card. Cancellations must be made at least 72 hours prior to the arrival date to avoid a penalty. Cancellations made within 72 hours of arrival, or failure to check in (no-show), will result in a penalty charge equivalent to the first night's room rate plus taxes.
