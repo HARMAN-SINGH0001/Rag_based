@@ -411,22 +411,26 @@
         return;
       }
 
-      sourceSummary.innerText = `${chunks.length} record${chunks.length === 1 ? '' : 's'} checked for this answer.`;
+      sourceSummary.innerText = `${chunks.length} hotel record${chunks.length === 1 ? '' : 's'} checked.`;
       chunksContainer.innerHTML = chunks.map((chunk, index) => {
         const distance = Number(chunk.distance);
         const quality = distance < 0.5 ? 'Strong match' : distance < 0.75 ? 'Good match' : 'Loose match';
         const qualityClass = distance < 0.5 ? 'strong' : distance < 0.75 ? 'useful' : 'weak';
+        const category = chunk.category || 'Hotel record';
         return `
           <article class="chunk-card">
             <div class="chunk-topline">
-              <span class="rank-badge">${index + 1}</span>
+              <span class="rank-badge">Source ${index + 1}</span>
               <span class="quality-badge ${qualityClass}">${quality}</span>
-              <span class="chip">${escapeHtml(chunk.doc_id || '')}</span>
             </div>
             <h4>${escapeHtml(chunk.title || 'Hotel record')}</h4>
-            <div class="chunk-meta">${escapeHtml(chunk.hotel || '')} / ${escapeHtml(chunk.category || '')}</div>
-            <details>
-              <summary>Read record</summary>
+            <div class="chunk-meta">
+              <span>${escapeHtml(chunk.hotel || 'Hotel')}</span>
+              <span>${escapeHtml(category)}</span>
+              <span>${escapeHtml(chunk.doc_id || '')}</span>
+            </div>
+            <details class="record-detail">
+              <summary>View details</summary>
               <p>${escapeHtml(chunk.verbatim_content || '')}</p>
             </details>
           </article>

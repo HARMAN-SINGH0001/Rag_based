@@ -1,4 +1,5 @@
 import os
+import re
 from typing import List, Dict, Any, Tuple
 from settings import FAISS_INDEX_PATH, DATASET_JSON_PATH
 from langchain_core.documents import Document
@@ -121,11 +122,13 @@ def retrieve_chunks(query: str, index_path: str = None, backend: str = "huggingf
     """
     vector_store = load_vector_store(index_path, backend, openai_api_key)
     
-    # similarity_search_with_score returns Tuple[Document, float] (L2 distance in FAISS; lower is closer)
-    results: List[Tuple[Document, float]] = vector_store.similarity_search_with_score(query, k=k)
+    # Fetch a few extra candidates so we can lightly re-rank obvious matches
+    # such as "free WiFi and breakfast" before trimming to the requested k.
+    search_k = max(k, min(k * 4, 12))
+    results: List[Tuple[Document, float]] = vector_store.similarity_search_with_score(query, k=search_k)
     
     retrieved_chunks = []
-    for doc, distance in results:
+    for doc, distance in rerank_results(query, results)[:k]:
         retrieved_chunks.append({
             "chunk_id": doc.metadata.get("chunk_id"),
             "doc_id": doc.metadata.get("doc_id"),
@@ -138,6 +141,39 @@ def retrieve_chunks(query: str, index_path: str = None, backend: str = "huggingf
         })
         
     return retrieved_chunks
+
+def rerank_results(query: str, results: List[Tuple[Document, float]]) -> List[Tuple[Document, float]]:
+    """
+    Keeps FAISS as the main signal, then nudges documents that contain exact
+    terms from the user's question higher in the displayed source list.
+    """
+    query_terms = [
+        term
+        for term in re.findall(r"[a-z0-9]+", query.lower())
+        if len(term) > 2 and term not in {"what", "which", "with", "have", "does", "the", "and", "for"}
+    ]
+
+    def score(item: Tuple[Document, float]) -> float:
+        doc, distance = item
+        text = f"{doc.page_content} {doc.metadata.get('title', '')} {doc.metadata.get('category', '')}".lower()
+        adjusted = float(distance)
+
+        for term in query_terms:
+            if term in text:
+                adjusted -= 0.08
+
+        if "wifi" in query.lower() and "breakfast" in query.lower():
+            has_wifi = "wifi" in text or "wireless" in text or "internet" in text
+            has_breakfast = "breakfast" in text
+            says_not_included = "not included" in text or "breakfast is paid" in text
+            if has_wifi and has_breakfast:
+                adjusted -= 0.35
+            if says_not_included:
+                adjusted += 0.55
+
+        return adjusted
+
+    return sorted(results, key=score)
 
 if __name__ == "__main__":
     # Test building and retrieving from the vector store

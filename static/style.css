@@ -766,14 +766,28 @@ input[type="range"] {
 }
 
 .chunk-card h4 {
-  margin: 10px 0 6px;
+  margin: 12px 0 10px;
   color: var(--ink);
   font-size: 1rem;
+  line-height: 1.35;
 }
 
 .chunk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   color: var(--muted);
   font-size: 0.86rem;
+}
+
+.chunk-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
 }
 
 .chip,
@@ -816,6 +830,10 @@ details {
   border-radius: 8px;
   padding: 12px;
   border: 1px solid var(--line);
+}
+
+.record-detail {
+  background: #fffaf4;
 }
 
 details summary {
