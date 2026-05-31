@@ -347,12 +347,11 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        const data = await parseApiResponse(response);
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Something went wrong');
+          throw new Error(data.error || 'Something went wrong');
         }
 
-        const data = await response.json();
         answerCard.classList.remove('loading');
         renderResult(data);
         rememberQuestion(question);
@@ -441,6 +440,26 @@
       fallbackNotes.innerHTML = notes.map((note) => `<div class="inline-note">${escapeHtml(cleanNote(note))}</div>`).join('');
     }
 
+    async function parseApiResponse(response) {
+      const contentType = response.headers.get('content-type') || '';
+      const bodyText = await response.text();
+      if (contentType.includes('application/json')) {
+        return bodyText ? JSON.parse(bodyText) : {};
+      }
+
+      const shortBody = bodyText
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 180);
+
+      return {
+        error: shortBody
+          ? `Server returned a non-JSON response: ${shortBody}`
+          : 'Server returned an empty non-JSON response.'
+      };
+    }
+
     function rememberQuestion(question) {
       history = [question, ...history.filter((item) => item !== question)].slice(0, 5);
       historyList.innerHTML = history.map((item) => `<button class="history-item">${escapeHtml(item)}</button>`).join('');
@@ -485,8 +504,10 @@
     function cleanNote(note) {
       return String(note)
         .replace('Ollama embeddings are local-only on Render, so HuggingFace embeddings were used.', 'Local search was not available on the hosted site, so the standard search was used.')
+        .replace('Ollama embeddings are local-only on Render, so hosted lexical search was used.', 'Local search was not available on the hosted site, so the hosted search was used.')
         .replace('Ollama LLM is local-only on Render, so Mock answers were used.', 'The hosted site used the built-in answer mode.')
         .replace('OpenAI embeddings need an API key, so HuggingFace embeddings were used.', 'OpenAI search needs a key, so the standard search was used.')
+        .replace('OpenAI embeddings need an API key, so hosted lexical search was used.', 'OpenAI search needs a key, so the hosted search was used.')
         .replace('OpenAI LLM needs an API key, so Mock answers were used.', 'OpenAI answers need a key, so the built-in answer mode was used.');
     }
 

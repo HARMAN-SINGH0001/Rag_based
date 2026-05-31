@@ -1,8 +1,12 @@
+import logging
+
 from flask import Flask, jsonify, render_template, request
+from werkzeug.exceptions import HTTPException
 from qa import answer_query_rag
 from settings import IS_RENDER
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+logging.basicConfig(level=logging.INFO)
 
 EMBEDDING_BACKENDS = {
     "HuggingFace (local)": "lexical",
@@ -22,22 +26,25 @@ def index():
 
 @app.route("/query", methods=["POST"])
 def query():
-    payload = request.get_json(force=True)
-    question = payload.get("question", "").strip()
-    if not question:
-        return jsonify({"error": "Question cannot be empty."}), 400
+    try:
+        payload = request.get_json(force=True)
+        question = payload.get("question", "").strip()
+        if not question:
+            return jsonify({"error": "Question cannot be empty."}), 400
 
-    embedding_backend = EMBEDDING_BACKENDS.get(payload.get("embedding_backend", "HuggingFace (local)"), "huggingface")
-    llm_backend = LLM_BACKENDS.get(payload.get("llm_backend", "Mock (High-Fidelity)"), "mock")
-    k = int(payload.get("k", 3))
-    hallucination_control = bool(payload.get("hallucination_control", True))
-    confidence_threshold = float(payload.get("confidence_threshold", 0.75))
-    openai_api_key = payload.get("openai_api_key") or None
+        embedding_backend = EMBEDDING_BACKENDS.get(payload.get("embedding_backend", "HuggingFace (local)"), "lexical")
+        llm_backend = LLM_BACKENDS.get(payload.get("llm_backend", "Mock (High-Fidelity)"), "mock")
+        k = int(payload.get("k", 3))
+        hallucination_control = bool(payload.get("hallucination_control", True))
+        confidence_threshold = float(payload.get("confidence_threshold", 0.75))
+        openai_api_key = payload.get("openai_api_key") or None
+    except Exception as exc:
+        return jsonify({"error": f"Invalid request payload: {exc}"}), 400
 
     fallback_notes = []
     if IS_RENDER and embedding_backend == "ollama":
-        embedding_backend = "huggingface"
-        fallback_notes.append("Ollama embeddings are local-only on Render, so HuggingFace embeddings were used.")
+        embedding_backend = "lexical"
+        fallback_notes.append("Ollama embeddings are local-only on Render, so hosted lexical search was used.")
     if IS_RENDER and llm_backend == "ollama":
         llm_backend = "mock"
         fallback_notes.append("Ollama LLM is local-only on Render, so Mock answers were used.")
@@ -47,8 +54,8 @@ def query():
         openai_api_key = os.getenv("OPENAI_API_KEY")
         if not openai_api_key:
             if embedding_backend == "openai":
-                embedding_backend = "huggingface"
-                fallback_notes.append("OpenAI embeddings need an API key, so HuggingFace embeddings were used.")
+                embedding_backend = "lexical"
+                fallback_notes.append("OpenAI embeddings need an API key, so hosted lexical search was used.")
             if llm_backend == "openai":
                 llm_backend = "mock"
                 fallback_notes.append("OpenAI LLM needs an API key, so Mock answers were used.")
@@ -70,9 +77,16 @@ def query():
             "llm": llm_backend
         }
     except Exception as exc:
+        app.logger.exception("Query failed")
         return jsonify({"error": str(exc)}), 500
 
     return jsonify(result)
+
+@app.errorhandler(HTTPException)
+def handle_http_exception(exc):
+    if request.path.startswith("/query") or request.path.startswith("/health"):
+        return jsonify({"error": exc.description}), exc.code
+    return exc
 
 @app.route("/health")
 def health():
