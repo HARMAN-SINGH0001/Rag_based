@@ -1,5 +1,6 @@
 import os
 from typing import List, Dict, Any, Tuple
+from settings import FAISS_INDEX_PATH, BASE_DIR
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
@@ -26,11 +27,13 @@ def get_embeddings(backend: str = "huggingface", openai_api_key: str = None):
         print("Using local Hugging Face embeddings (sentence-transformers/all-MiniLM-L6-v2)...")
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-def build_vector_store(chunks: List[Dict[str, Any]], index_path: str = "e:/Rag_Based/faiss_index", backend: str = "huggingface", openai_api_key: str = None):
+def build_vector_store(chunks: List[Dict[str, Any]], index_path: str = None, backend: str = "huggingface", openai_api_key: str = None):
     """
     Takes preprocessed chunks, generates embeddings, builds a FAISS index, and saves it.
     Uses 'contextualized_content' for the vector representations.
     """
+    # resolve default index path from settings if not provided
+    index_path = index_path or FAISS_INDEX_PATH
     embeddings_model = get_embeddings(backend, openai_api_key)
     
     documents = []
@@ -53,14 +56,16 @@ def build_vector_store(chunks: List[Dict[str, Any]], index_path: str = "e:/Rag_B
     vector_store = FAISS.from_documents(documents, embeddings_model)
     
     # Save the index to disk
+    os.makedirs(index_path, exist_ok=True)
     vector_store.save_local(index_path)
     print(f"FAISS index successfully saved to: {index_path}")
     return vector_store
 
-def load_vector_store(index_path: str = "e:/Rag_Based/faiss_index", backend: str = "huggingface", openai_api_key: str = None):
+def load_vector_store(index_path: str = None, backend: str = "huggingface", openai_api_key: str = None):
     """
     Loads an existing FAISS index from disk.
     """
+    index_path = index_path or FAISS_INDEX_PATH
     if not os.path.exists(index_path):
         raise FileNotFoundError(f"FAISS index folder not found at: {index_path}")
         
@@ -69,7 +74,7 @@ def load_vector_store(index_path: str = "e:/Rag_Based/faiss_index", backend: str
     vector_store = FAISS.load_local(index_path, embeddings_model, allow_dangerous_deserialization=True)
     return vector_store
 
-def retrieve_chunks(query: str, index_path: str = "e:/Rag_Based/faiss_index", backend: str = "huggingface", k: int = 3, openai_api_key: str = None) -> List[Dict[str, Any]]:
+def retrieve_chunks(query: str, index_path: str = None, backend: str = "huggingface", k: int = 3, openai_api_key: str = None) -> List[Dict[str, Any]]:
     """
     Retrieves the top-k chunks for a given query along with their distance scores.
     Returns a list of dictionaries containing chunk details and scores.
@@ -99,7 +104,7 @@ if __name__ == "__main__":
     from preprocess import preprocess_dataset
     import json
     
-    dataset_json = "e:/Rag_Based/hotel_dataset.json"
+    dataset_json = os.path.join(BASE_DIR, "hotel_dataset.json")
     if not os.path.exists(dataset_json):
         print("Please run generate_dataset.py first!")
     else:

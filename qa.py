@@ -1,6 +1,7 @@
 import os
 import re
 from typing import List, Dict, Any, Tuple
+from settings import FAISS_INDEX_PATH
 from retriever import retrieve_chunks
 
 STRICT_SYSTEM_PROMPT = """You are a helpful and strict AI assistant for StayChat AI.
@@ -151,7 +152,7 @@ def mock_llm_qa(query: str, context_str: str) -> str:
 
 def answer_query_rag(
     query: str,
-    index_path: str = "e:/Rag_Based/faiss_index",
+    index_path: str = None,
     backend_embeddings: str = "huggingface",
     backend_llm: str = "mock", # "mock", "ollama", "openai"
     k: int = 3,
@@ -167,6 +168,8 @@ def answer_query_rag(
     4. Formulates and returns the final answer along with source document metadata.
     """
     # 1. Retrieve chunks
+    # resolve default index path from settings if not provided
+    index_path = index_path or FAISS_INDEX_PATH
     retrieved = retrieve_chunks(query, index_path, backend_embeddings, k, openai_api_key)
     
     # 2. Check threshold if hallucination control is enabled
