@@ -1,9 +1,12 @@
+import logging
+
 from flask import Flask, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
 from qa import answer_query_rag
 from settings import IS_RENDER
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+logging.basicConfig(level=logging.INFO)
 
 EMBEDDING_BACKENDS = {
     "HuggingFace (local)": "lexical",
@@ -74,6 +77,7 @@ def query():
             "llm": llm_backend
         }
     except Exception as exc:
+        app.logger.exception("Query failed")
         return jsonify({"error": str(exc)}), 500
 
     return jsonify(result)
