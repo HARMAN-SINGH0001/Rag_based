@@ -1,5 +1,6 @@
 import os
 import json
+from settings import BASE_DIR
 
 def generate_hotel_dataset():
     documents = [
@@ -322,9 +323,10 @@ def generate_hotel_dataset():
         }
     ]
 
-    # Save to a single JSON file
-    os.makedirs("e:/Rag_Based/dataset", exist_ok=True)
-    json_path = "e:/Rag_Based/hotel_dataset.json"
+    # Save to a single JSON file in the project dataset directory
+    dataset_dir = os.path.join(BASE_DIR, "dataset")
+    os.makedirs(dataset_dir, exist_ok=True)
+    json_path = os.path.join(BASE_DIR, "hotel_dataset.json")
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(documents, f, indent=4, ensure_ascii=False)
     print(f"Saved {len(documents)} documents to {json_path}")
@@ -333,14 +335,14 @@ def generate_hotel_dataset():
     for doc in documents:
         # Create a safe filename
         safe_title = doc["title"].replace(" - ", "_").replace(" & ", "_and_").replace(" ", "_").replace(",", "").replace("'", "")
-        filename = f"e:/Rag_Based/dataset/{doc['id']}_{safe_title}.txt"
+        filename = os.path.join(dataset_dir, f"{doc['id']}_{safe_title}.txt")
         with open(filename, "w", encoding="utf-8") as f:
             f.write(f"ID: {doc['id']}\n")
             f.write(f"Hotel: {doc['hotel']}\n")
             f.write(f"Category: {doc['category']}\n")
             f.write(f"Title: {doc['title']}\n")
             f.write(f"Content: {doc['content']}\n")
-    print("Saved individual TXT files in e:/Rag_Based/dataset/")
+    print(f"Saved individual TXT files in {dataset_dir}")
 
 if __name__ == "__main__":
     generate_hotel_dataset()

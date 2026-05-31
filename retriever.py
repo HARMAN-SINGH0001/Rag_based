@@ -1,7 +1,11 @@
 import os
+import re
 from typing import List, Dict, Any, Tuple
+from settings import FAISS_INDEX_PATH, DATASET_JSON_PATH
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
+
+FAISS_REQUIRED_FILES = ("index.faiss", "index.pkl")
 
 # Embedding backends configuration
 def get_embeddings(backend: str = "huggingface", openai_api_key: str = None):
@@ -26,11 +30,13 @@ def get_embeddings(backend: str = "huggingface", openai_api_key: str = None):
         print("Using local Hugging Face embeddings (sentence-transformers/all-MiniLM-L6-v2)...")
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-def build_vector_store(chunks: List[Dict[str, Any]], index_path: str = "e:/Rag_Based/faiss_index", backend: str = "huggingface", openai_api_key: str = None):
+def build_vector_store(chunks: List[Dict[str, Any]], index_path: str = None, backend: str = "huggingface", openai_api_key: str = None):
     """
     Takes preprocessed chunks, generates embeddings, builds a FAISS index, and saves it.
     Uses 'contextualized_content' for the vector representations.
     """
+    # resolve default index path from settings if not provided
+    index_path = index_path or FAISS_INDEX_PATH
     embeddings_model = get_embeddings(backend, openai_api_key)
     
     documents = []
@@ -53,34 +59,76 @@ def build_vector_store(chunks: List[Dict[str, Any]], index_path: str = "e:/Rag_B
     vector_store = FAISS.from_documents(documents, embeddings_model)
     
     # Save the index to disk
+    os.makedirs(index_path, exist_ok=True)
     vector_store.save_local(index_path)
     print(f"FAISS index successfully saved to: {index_path}")
     return vector_store
 
-def load_vector_store(index_path: str = "e:/Rag_Based/faiss_index", backend: str = "huggingface", openai_api_key: str = None):
+def load_vector_store(index_path: str = None, backend: str = "huggingface", openai_api_key: str = None):
     """
     Loads an existing FAISS index from disk.
     """
-    if not os.path.exists(index_path):
-        raise FileNotFoundError(f"FAISS index folder not found at: {index_path}")
-        
+    index_path = index_path or FAISS_INDEX_PATH
+    if not is_valid_faiss_index(index_path):
+        vector_store = rebuild_vector_store(index_path, backend, openai_api_key)
+        if vector_store is not None:
+            return vector_store
+
+        missing_files = [
+            filename
+            for filename in FAISS_REQUIRED_FILES
+            if not os.path.exists(os.path.join(index_path, filename))
+        ]
+        if not os.path.isdir(index_path):
+            raise FileNotFoundError(f"FAISS index folder not found at: {index_path}")
+        raise FileNotFoundError(
+            f"FAISS index at {index_path} is incomplete. Missing: {', '.join(missing_files)}. "
+            "Run `python retriever.py` to rebuild it."
+        )
+
     embeddings_model = get_embeddings(backend, openai_api_key)
     # allow_dangerous_deserialization=True is required to load FAISS pickles locally
     vector_store = FAISS.load_local(index_path, embeddings_model, allow_dangerous_deserialization=True)
     return vector_store
 
-def retrieve_chunks(query: str, index_path: str = "e:/Rag_Based/faiss_index", backend: str = "huggingface", k: int = 3, openai_api_key: str = None) -> List[Dict[str, Any]]:
+def is_valid_faiss_index(index_path: str) -> bool:
+    """
+    A LangChain FAISS index needs both the vector file and docstore metadata.
+    """
+    return os.path.isdir(index_path) and all(
+        os.path.exists(os.path.join(index_path, filename))
+        for filename in FAISS_REQUIRED_FILES
+    )
+
+def rebuild_vector_store(index_path: str, backend: str = "huggingface", openai_api_key: str = None):
+    """
+    Rebuilds the FAISS index from the local hotel dataset when the saved index
+    is missing or incomplete.
+    """
+    if not os.path.exists(DATASET_JSON_PATH):
+        return None
+
+    print(f"FAISS index missing or incomplete at: {index_path}")
+    print("Rebuilding FAISS index from hotel_dataset.json...")
+    from preprocess import preprocess_dataset
+
+    chunks = preprocess_dataset(DATASET_JSON_PATH)
+    return build_vector_store(chunks, index_path=index_path, backend=backend, openai_api_key=openai_api_key)
+
+def retrieve_chunks(query: str, index_path: str = None, backend: str = "huggingface", k: int = 3, openai_api_key: str = None) -> List[Dict[str, Any]]:
     """
     Retrieves the top-k chunks for a given query along with their distance scores.
     Returns a list of dictionaries containing chunk details and scores.
     """
     vector_store = load_vector_store(index_path, backend, openai_api_key)
     
-    # similarity_search_with_score returns Tuple[Document, float] (L2 distance in FAISS; lower is closer)
-    results: List[Tuple[Document, float]] = vector_store.similarity_search_with_score(query, k=k)
+    # Fetch a few extra candidates so we can lightly re-rank obvious matches
+    # such as "free WiFi and breakfast" before trimming to the requested k.
+    search_k = max(k, min(k * 4, 12))
+    results: List[Tuple[Document, float]] = vector_store.similarity_search_with_score(query, k=search_k)
     
     retrieved_chunks = []
-    for doc, distance in results:
+    for doc, distance in rerank_results(query, results)[:k]:
         retrieved_chunks.append({
             "chunk_id": doc.metadata.get("chunk_id"),
             "doc_id": doc.metadata.get("doc_id"),
@@ -94,16 +142,48 @@ def retrieve_chunks(query: str, index_path: str = "e:/Rag_Based/faiss_index", ba
         
     return retrieved_chunks
 
+def rerank_results(query: str, results: List[Tuple[Document, float]]) -> List[Tuple[Document, float]]:
+    """
+    Keeps FAISS as the main signal, then nudges documents that contain exact
+    terms from the user's question higher in the displayed source list.
+    """
+    query_terms = [
+        term
+        for term in re.findall(r"[a-z0-9]+", query.lower())
+        if len(term) > 2 and term not in {"what", "which", "with", "have", "does", "the", "and", "for"}
+    ]
+
+    def score(item: Tuple[Document, float]) -> float:
+        doc, distance = item
+        text = f"{doc.page_content} {doc.metadata.get('title', '')} {doc.metadata.get('category', '')}".lower()
+        adjusted = float(distance)
+
+        for term in query_terms:
+            if term in text:
+                adjusted -= 0.08
+
+        if "wifi" in query.lower() and "breakfast" in query.lower():
+            has_wifi = "wifi" in text or "wireless" in text or "internet" in text
+            has_breakfast = "breakfast" in text
+            says_not_included = "not included" in text or "breakfast is paid" in text
+            if has_wifi and has_breakfast:
+                adjusted -= 0.35
+            if says_not_included:
+                adjusted += 0.55
+
+        return adjusted
+
+    return sorted(results, key=score)
+
 if __name__ == "__main__":
     # Test building and retrieving from the vector store
     from preprocess import preprocess_dataset
     import json
     
-    dataset_json = "e:/Rag_Based/hotel_dataset.json"
-    if not os.path.exists(dataset_json):
+    if not os.path.exists(DATASET_JSON_PATH):
         print("Please run generate_dataset.py first!")
     else:
-        chunks = preprocess_dataset(dataset_json)
+        chunks = preprocess_dataset(DATASET_JSON_PATH)
         # Build using local Hugging Face model
         build_vector_store(chunks, backend="huggingface")
         

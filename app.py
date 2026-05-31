@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template, request
 from qa import answer_query_rag
+from settings import IS_RENDER
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -33,6 +34,25 @@ def query():
     confidence_threshold = float(payload.get("confidence_threshold", 0.75))
     openai_api_key = payload.get("openai_api_key") or None
 
+    fallback_notes = []
+    if IS_RENDER and embedding_backend == "ollama":
+        embedding_backend = "huggingface"
+        fallback_notes.append("Ollama embeddings are local-only on Render, so HuggingFace embeddings were used.")
+    if IS_RENDER and llm_backend == "ollama":
+        llm_backend = "mock"
+        fallback_notes.append("Ollama LLM is local-only on Render, so Mock answers were used.")
+
+    if (embedding_backend == "openai" or llm_backend == "openai") and not openai_api_key:
+        import os
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key:
+            if embedding_backend == "openai":
+                embedding_backend = "huggingface"
+                fallback_notes.append("OpenAI embeddings need an API key, so HuggingFace embeddings were used.")
+            if llm_backend == "openai":
+                llm_backend = "mock"
+                fallback_notes.append("OpenAI LLM needs an API key, so Mock answers were used.")
+
     try:
         result = answer_query_rag(
             query=question,
@@ -43,6 +63,12 @@ def query():
             confidence_threshold=confidence_threshold,
             openai_api_key=openai_api_key
         )
+        if fallback_notes:
+            result["fallback_notes"] = fallback_notes
+        result["active_backends"] = {
+            "embeddings": embedding_backend,
+            "llm": llm_backend
+        }
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
 

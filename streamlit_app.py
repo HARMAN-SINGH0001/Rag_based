@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from qa import answer_query_rag, format_context, STRICT_SYSTEM_PROMPT
 from evaluate import calculate_metrics, GROUND_TRUTH
+from settings import DATASET_JSON_PATH
 
 # Page config
 st.set_page_config(
@@ -582,12 +583,11 @@ with tab4:
     st.subheader("Hotel Knowledge Base")
     st.write("Browse the 44 synthetic source documents used in this assessment.")
     
-    dataset_json = "e:/Rag_Based/hotel_dataset.json"
-    if not os.path.exists(dataset_json):
+    if not os.path.exists(DATASET_JSON_PATH):
         st.error("Dataset file not found! Please run generate_dataset.py first.")
     else:
         import json
-        with open(dataset_json, "r", encoding="utf-8") as f:
+        with open(DATASET_JSON_PATH, "r", encoding="utf-8") as f:
             docs = json.load(f)
             
         df = pd.DataFrame(docs)

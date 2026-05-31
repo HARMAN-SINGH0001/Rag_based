@@ -3,139 +3,343 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StayChat AI Hotel RAG</title>
+  <title>StayChat AI</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
+  <div class="topbar">
+    <div class="brand-mark">
+      <span class="brand-icon">S</span>
+      <span>StayChat</span>
+    </div>
+    <nav class="topnav" aria-label="Page sections">
+      <a href="#ask">Ask</a>
+      <a href="#answer">Answer</a>
+      <a href="#sources">Sources</a>
+    </nav>
+  </div>
+
   <div class="page-shell">
     <header class="hero-panel">
       <div>
-        <h1>StayChat AI</h1>
-        <p class="hero-copy">Hotel RAG Q&A — interactive HTML interface with strict retrieval grounding.</p>
+        <p class="eyebrow">Hotel help desk</p>
+        <h1>Find the right stay faster.</h1>
+        <p class="hero-copy">Ask about WiFi, breakfast, cancellation rules, beach access, reviews, or amenities. StayChat checks the hotel records and gives you a clear answer.</p>
+        <div class="hero-trust">
+          <span>5 hotels</span>
+          <span>Policies, reviews, amenities</span>
+          <span>Answers with records</span>
+        </div>
       </div>
-      <div class="hero-actions">
-        <button class="pill-button" id="sample-q1">WiFi + Breakfast</button>
-        <button class="pill-button" id="sample-q2">Hotel X Cancellation</button>
-        <button class="pill-button" id="sample-q3">Beach Recommendation</button>
+      <div class="booking-strip" aria-label="Popular question shortcuts">
+        <button class="sample-button booking-pill" data-question="Which hotels have free WiFi and complimentary breakfast?">
+          <span>Need included extras</span>
+          <strong>WiFi + breakfast</strong>
+        </button>
+        <button class="sample-button booking-pill" data-question="What is the cancellation policy of Hotel X?">
+          <span>Check before booking</span>
+          <strong>Cancellation policy</strong>
+        </button>
+        <button class="sample-button booking-pill" data-question="Suggest a hotel with excellent reviews near the beach.">
+          <span>Plan a coastal trip</span>
+          <strong>Beach stay</strong>
+        </button>
       </div>
     </header>
 
     <main class="grid-layout">
-      <section class="main-card query-card">
+      <section class="main-card query-card" id="ask">
         <div class="section-header">
           <div>
-            <h2>Ask a hotel question</h2>
-            <p>Type a query about hotels, amenities, policies, location, or reviews. The system uses semantic retrieval to ground answers.</p>
+            <h2>What do you want to know?</h2>
+            <p>Choose a hotel or topic, then ask naturally.</p>
+          </div>
+          <button id="reset-button" class="ghost-button">Clear</button>
+        </div>
+
+        <div class="shortcut-panel">
+          <div>
+            <div class="mini-title">Hotels</div>
+            <div class="quick-row" aria-label="Hotel shortcuts">
+              <button class="quick-chip prefix-chip" data-prefix="Grand Plaza Hotel">Grand Plaza</button>
+              <button class="quick-chip prefix-chip" data-prefix="Seaside Haven Resort">Seaside Haven</button>
+              <button class="quick-chip prefix-chip" data-prefix="Hotel X">Hotel X</button>
+              <button class="quick-chip prefix-chip" data-prefix="Alpine Lodge">Alpine Lodge</button>
+              <button class="quick-chip prefix-chip" data-prefix="Sunrise B&B">Sunrise B&B</button>
+            </div>
+          </div>
+          <div>
+            <div class="mini-title">Topics</div>
+            <div class="quick-row" aria-label="Topic shortcuts">
+              <button class="quick-chip topic-chip" data-topic="amenities">Amenities</button>
+              <button class="quick-chip topic-chip" data-topic="reviews">Reviews</button>
+              <button class="quick-chip topic-chip" data-topic="location">Location</button>
+              <button class="quick-chip topic-chip" data-topic="cancellation policy">Cancellation</button>
+              <button class="quick-chip topic-chip" data-topic="breakfast and WiFi">Breakfast + WiFi</button>
+            </div>
           </div>
         </div>
 
         <div class="control-group">
-          <label for="question">Question</label>
-          <textarea id="question" rows="4" placeholder="Which hotels have free WiFi and complimentary breakfast?"></textarea>
-        </div>
-
-        <div class="control-grid">
-          <div class="control-group">
-            <label for="embedding-backend">Embedding Backend</label>
-            <select id="embedding-backend">
-              <option>HuggingFace (local)</option>
-              <option>Ollama (local)</option>
-              <option>OpenAI API</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label for="llm-backend">LLM Backend</label>
-            <select id="llm-backend">
-              <option>Mock (High-Fidelity)</option>
-              <option>Ollama (tinyllama:chat)</option>
-              <option>OpenAI API</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label for="topk">Top-K</label>
-            <input id="topk" type="number" min="1" max="8" value="3" />
-          </div>
-          <div class="control-group">
-            <label for="threshold">Confidence Threshold</label>
-            <input id="threshold" type="number" min="0.1" max="2" step="0.05" value="0.75" />
-          </div>
-        </div>
-
-        <div class="control-grid">
-          <div class="control-group full-width">
-            <label for="openai-key">OpenAI API Key (optional)</label>
-            <input id="openai-key" type="password" placeholder="sk-..." />
+          <label for="question">Your question</label>
+          <textarea id="question" rows="5" maxlength="600" placeholder="Example: Which hotel is best for a beach trip with strong reviews?"></textarea>
+          <div class="field-footer">
+            <span id="char-count">0 / 600</span>
+            <span>Name a hotel or topic for the best result.</span>
           </div>
         </div>
 
         <div class="action-bar">
-          <button id="submit-button" class="primary-button">Generate Answer</button>
-          <span id="status-label" class="status-label">Ready.</span>
+          <button id="submit-button" class="primary-button">Ask StayChat</button>
+          <span id="status-label" class="status-label">Ready when you are.</span>
+        </div>
+
+        <details class="advanced-settings">
+          <summary>Advanced settings</summary>
+          <div class="control-grid advanced-grid">
+            <div class="control-group">
+              <label for="embedding-backend">Search method</label>
+              <select id="embedding-backend">
+                <option value="HuggingFace (local)">Standard search</option>
+                <option value="Ollama (local)">Search on this computer</option>
+                <option value="OpenAI API">OpenAI search</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="llm-backend">Answer style</label>
+              <select id="llm-backend">
+                <option value="Mock (High-Fidelity)">Built-in answer</option>
+                <option value="Ollama (tinyllama:chat)">Answer on this computer</option>
+                <option value="OpenAI API">OpenAI answer</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="topk">Sources checked: <strong id="topk-value">3</strong></label>
+              <input id="topk" type="range" min="1" max="8" value="3" />
+            </div>
+            <div class="control-group">
+              <label for="threshold">Answer caution: <strong id="threshold-value">0.75</strong></label>
+              <input id="threshold" type="range" min="0.2" max="1.5" step="0.05" value="0.75" />
+            </div>
+            <div class="control-group full-width">
+              <label for="openai-key">OpenAI key</label>
+              <input id="openai-key" type="password" placeholder="Only needed if you choose OpenAI" />
+            </div>
+          </div>
+          <div id="backend-note" class="inline-note">Default setup is ready for hosting.</div>
+        </details>
+
+        <div class="history-panel">
+          <div class="mini-title">Recent questions</div>
+          <div id="history-list" class="history-list">No questions yet.</div>
         </div>
       </section>
 
-      <section class="main-card output-card">
-        <h2>Answer</h2>
-        <div id="answer-card" class="answer-card empty-state">Submit a query to see the grounded hotel answer.</div>
-
-        <div class="meta-panel">
-          <div class="meta-item"><span>Top-k</span><strong id="meta-topk">3</strong></div>
-          <div class="meta-item"><span>Best Distance</span><strong id="meta-distance">—</strong></div>
-          <div class="meta-item"><span>Threshold Blocked</span><strong id="meta-blocked">No</strong></div>
+      <section class="main-card output-card" id="answer">
+        <div class="section-header">
+          <div>
+            <h2>Answer</h2>
+            <p id="backend-used">Ask a question to begin.</p>
+          </div>
+          <button id="copy-button" class="ghost-button" disabled>Copy</button>
         </div>
 
-        <h3 class="section-title">Retrieved Chunks</h3>
+        <div id="answer-card" class="answer-card empty-state">
+          <div>
+            <strong>Your answer will appear here.</strong>
+            <span>Sources and booking details will show below after you ask.</span>
+          </div>
+        </div>
+        <div id="fallback-notes" class="notes-list"></div>
+
+        <div class="meta-panel">
+          <div class="meta-item"><span>Sources</span><strong id="meta-topk">3</strong></div>
+          <div class="meta-item"><span>Closest match</span><strong id="meta-distance">-</strong></div>
+          <div class="meta-item"><span>Match quality</span><strong id="meta-confidence">-</strong></div>
+          <div class="meta-item"><span>Answered</span><strong id="meta-blocked">-</strong></div>
+        </div>
+
+        <div class="sources-heading" id="sources">
+          <h3 class="section-title">Checked Records</h3>
+          <span id="source-summary">No records checked yet.</span>
+        </div>
         <div id="chunks-container" class="chunks-grid"></div>
       </section>
     </main>
+
+    <section class="lower-content">
+      <section class="feature-band" aria-label="StayChat highlights">
+        <article>
+          <span class="feature-icon">1</span>
+          <div>
+            <strong>Ask before you book</strong>
+            <p>Check rules, extras, location, and guest feedback in one place.</p>
+          </div>
+        </article>
+        <article>
+          <span class="feature-icon">2</span>
+          <div>
+            <strong>Compare without digging</strong>
+            <p>Use hotel and topic shortcuts to move quickly between options.</p>
+          </div>
+        </article>
+        <article>
+          <span class="feature-icon">3</span>
+          <div>
+            <strong>See what was checked</strong>
+            <p>Every answer shows the hotel records used below it.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="hotel-showcase" aria-label="Featured hotels">
+        <div class="showcase-header">
+          <div>
+            <p class="eyebrow dark">Featured hotels</p>
+            <h2>Start with a stay style</h2>
+          </div>
+          <span>Choose one, then ask a follow-up.</span>
+        </div>
+        <div class="hotel-card-grid">
+          <button class="hotel-card sample-button" data-question="What should I know about Seaside Haven Resort's location and reviews?">
+            <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="Beachfront resort" />
+            <span>Beachfront</span>
+            <strong>Seaside Haven Resort</strong>
+          </button>
+          <button class="hotel-card sample-button" data-question="What amenities does Alpine Lodge offer?">
+            <img src="https://images.unsplash.com/photo-1517320964276-a002fa203177?auto=format&fit=crop&w=900&q=80" alt="Mountain lodge" />
+            <span>Mountain escape</span>
+            <strong>Alpine Lodge</strong>
+          </button>
+          <button class="hotel-card sample-button" data-question="Which hotels have free WiFi and complimentary breakfast?">
+            <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=900&q=80" alt="City hotel lobby" />
+            <span>Easy extras</span>
+            <strong>WiFi + breakfast</strong>
+          </button>
+        </div>
+      </section>
+    </section>
   </div>
 
   <script>
     const questionInput = document.getElementById('question');
     const submitButton = document.getElementById('submit-button');
+    const resetButton = document.getElementById('reset-button');
+    const copyButton = document.getElementById('copy-button');
     const answerCard = document.getElementById('answer-card');
     const statusLabel = document.getElementById('status-label');
     const chunksContainer = document.getElementById('chunks-container');
+    const fallbackNotes = document.getElementById('fallback-notes');
+    const backendNote = document.getElementById('backend-note');
+    const backendUsed = document.getElementById('backend-used');
+    const historyList = document.getElementById('history-list');
+    const charCount = document.getElementById('char-count');
+    const topkInput = document.getElementById('topk');
+    const thresholdInput = document.getElementById('threshold');
+    const topkValue = document.getElementById('topk-value');
+    const thresholdValue = document.getElementById('threshold-value');
     const metaTopk = document.getElementById('meta-topk');
     const metaDistance = document.getElementById('meta-distance');
+    const metaConfidence = document.getElementById('meta-confidence');
     const metaBlocked = document.getElementById('meta-blocked');
+    const sourceSummary = document.getElementById('source-summary');
+    const embeddingBackend = document.getElementById('embedding-backend');
+    const llmBackend = document.getElementById('llm-backend');
+    const openaiKey = document.getElementById('openai-key');
 
-    document.getElementById('sample-q1').addEventListener('click', () => {
-      questionInput.value = 'Which hotels have free WiFi and complimentary breakfast?';
-    });
-    document.getElementById('sample-q2').addEventListener('click', () => {
-      questionInput.value = 'What is the cancellation policy of Hotel X?';
-    });
-    document.getElementById('sample-q3').addEventListener('click', () => {
-      questionInput.value = 'Suggest a hotel with excellent reviews near the beach.';
+    let selectedHotel = '';
+    let lastAnswerText = '';
+    let history = [];
+
+    document.querySelectorAll('.sample-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        setQuestion(button.dataset.question);
+      });
     });
 
-    submitButton.addEventListener('click', async () => {
+    document.querySelectorAll('.prefix-chip').forEach((button) => {
+      button.addEventListener('click', () => {
+        selectedHotel = button.dataset.prefix;
+        document.querySelectorAll('.prefix-chip').forEach((chip) => chip.classList.remove('is-active'));
+        button.classList.add('is-active');
+        if (!questionInput.value.trim()) {
+          setQuestion(`Tell me about ${selectedHotel}.`);
+        }
+      });
+    });
+
+    document.querySelectorAll('.topic-chip').forEach((button) => {
+      button.addEventListener('click', () => {
+        const topic = button.dataset.topic;
+        const hotelText = selectedHotel ? `${selectedHotel}'s ` : '';
+        setQuestion(`What should I know about ${hotelText}${topic}?`);
+      });
+    });
+
+    questionInput.addEventListener('input', updateCharCount);
+    topkInput.addEventListener('input', () => {
+      topkValue.innerText = topkInput.value;
+      metaTopk.innerText = topkInput.value;
+    });
+    thresholdInput.addEventListener('input', () => {
+      thresholdValue.innerText = Number(thresholdInput.value).toFixed(2);
+    });
+    embeddingBackend.addEventListener('change', updateBackendNote);
+    llmBackend.addEventListener('change', updateBackendNote);
+
+    resetButton.addEventListener('click', () => {
+      selectedHotel = '';
+      document.querySelectorAll('.prefix-chip').forEach((chip) => chip.classList.remove('is-active'));
+      questionInput.value = '';
+      answerCard.className = 'answer-card empty-state';
+      answerCard.innerHTML = '<div><strong>Your answer will appear here.</strong><span>Sources and booking details will show below after you ask.</span></div>';
+      chunksContainer.innerHTML = '';
+      fallbackNotes.innerHTML = '';
+      backendUsed.innerText = 'Ask a question to begin.';
+      metaDistance.innerText = '-';
+      metaConfidence.innerText = '-';
+      metaBlocked.innerText = '-';
+      sourceSummary.innerText = 'No records checked yet.';
+      statusLabel.innerText = 'Ready when you are.';
+      statusLabel.className = 'status-label';
+      copyButton.disabled = true;
+      lastAnswerText = '';
+      updateCharCount();
+    });
+
+    copyButton.addEventListener('click', async () => {
+      if (!lastAnswerText) return;
+      await navigator.clipboard.writeText(lastAnswerText);
+      copyButton.innerText = 'Copied';
+      setTimeout(() => { copyButton.innerText = 'Copy'; }, 1200);
+    });
+
+    submitButton.addEventListener('click', runQuery);
+    questionInput.addEventListener('keydown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        runQuery();
+      }
+    });
+
+    async function runQuery() {
       const question = questionInput.value.trim();
       if (!question) {
-        statusLabel.innerText = 'Please enter a question first.';
-        statusLabel.classList.add('status-warning');
+        statusLabel.innerText = 'Please type a question first.';
+        statusLabel.className = 'status-label status-warning';
         return;
       }
 
       const payload = {
         question,
-        embedding_backend: document.getElementById('embedding-backend').value,
-        llm_backend: document.getElementById('llm-backend').value,
-        k: Number(document.getElementById('topk').value),
+        embedding_backend: embeddingBackend.value,
+        llm_backend: llmBackend.value,
+        k: Number(topkInput.value),
         hallucination_control: true,
-        confidence_threshold: Number(document.getElementById('threshold').value),
-        openai_api_key: document.getElementById('openai-key').value || null
+        confidence_threshold: Number(thresholdInput.value),
+        openai_api_key: openaiKey.value || null
       };
 
-      answerCard.classList.add('loading');
-      answerCard.innerHTML = '<div class="loader"></div>Generating response...';
-      statusLabel.innerText = 'Query in progress...';
-      statusLabel.className = 'status-label';
-      chunksContainer.innerHTML = '';
-      metaTopk.innerText = payload.k;
-      metaDistance.innerText = '—';
-      metaBlocked.innerText = 'No';
+      setLoading(payload);
 
       try {
         const response = await fetch('/query', {
@@ -145,49 +349,158 @@
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Unknown server error');
+          throw new Error(errorData.error || 'Something went wrong');
         }
 
         const data = await response.json();
         answerCard.classList.remove('loading');
         renderResult(data);
-        statusLabel.innerText = 'Answer generated successfully.';
+        rememberQuestion(question);
+        statusLabel.innerText = 'Answer ready.';
       } catch (error) {
-        answerCard.classList.remove('loading');
-        answerCard.innerHTML = `<div class="error-box">${error.message}</div>`;
-        statusLabel.innerText = 'Error generating response.';
-        statusLabel.classList.add('status-error');
-      }
-    });
-
-    function renderResult(data) {
-      if (data.threshold_blocked) {
-        metaBlocked.innerText = 'Yes';
-        answerCard.innerHTML = `<div class="warning-box">The query was blocked because the retrieval confidence fell below the threshold. No answer was generated to prevent hallucination.</div>`;
-      } else {
-        metaBlocked.innerText = 'No';
-        answerCard.innerHTML = `<div class="answer-copy">${data.answer.replace(/\n/g, '<br/>')}</div>`;
-      }
-      metaDistance.innerText = data.best_distance.toFixed(4);
-
-      if (Array.isArray(data.retrieved_chunks)) {
-        chunksContainer.innerHTML = data.retrieved_chunks.map((chunk, index) => {
-          return `
-            <article class="chunk-card">
-              <div class="chunk-info">
-                <span class="chip">${chunk.doc_id}</span>
-                <h4>${chunk.title}</h4>
-                <div class="chunk-meta">${chunk.hotel} • ${chunk.category} • Distance: ${chunk.distance.toFixed(4)}</div>
-              </div>
-              <details>
-                <summary>View chunk text</summary>
-                <p>${chunk.verbatim_content}</p>
-              </details>
-            </article>
-          `;
-        }).join('');
+        answerCard.className = 'answer-card';
+        answerCard.innerHTML = `<div class="error-box">${escapeHtml(error.message)}</div>`;
+        statusLabel.innerText = 'Could not answer that question.';
+        statusLabel.className = 'status-label status-error';
+        copyButton.disabled = true;
+      } finally {
+        submitButton.disabled = false;
       }
     }
+
+    function setLoading(payload) {
+      submitButton.disabled = true;
+      copyButton.disabled = true;
+      answerCard.className = 'answer-card loading';
+      answerCard.innerHTML = '<div class="loader"></div><strong>Checking hotel records...</strong><span>This usually takes a few seconds.</span>';
+      statusLabel.innerText = 'Checking records...';
+      statusLabel.className = 'status-label';
+      chunksContainer.innerHTML = '';
+      fallbackNotes.innerHTML = '';
+      metaTopk.innerText = payload.k;
+      metaDistance.innerText = '-';
+      metaConfidence.innerText = '-';
+      metaBlocked.innerText = '-';
+      sourceSummary.innerText = 'Looking for matching records...';
+    }
+
+    function renderResult(data) {
+      lastAnswerText = data.answer || '';
+      copyButton.disabled = !lastAnswerText;
+      metaBlocked.innerText = data.threshold_blocked ? 'No' : 'Yes';
+      metaDistance.innerText = Number(data.best_distance).toFixed(4);
+      metaConfidence.innerText = data.confidence_label || '-';
+      backendUsed.innerText = data.threshold_blocked ? 'No answer shown because the records did not match well enough.' : 'Answer based on hotel records.';
+
+      if (data.threshold_blocked) {
+        answerCard.className = 'answer-card';
+        answerCard.innerHTML = `<div class="warning-box">I could not find a strong enough match in the hotel records, so I did not guess.</div>`;
+      } else {
+        answerCard.className = 'answer-card';
+        answerCard.innerHTML = `<div class="answer-copy">${formatAnswer(data.answer)}</div>`;
+      }
+
+      renderFallbackNotes(data.fallback_notes || []);
+      renderChunks(data.retrieved_chunks || []);
+    }
+
+    function renderChunks(chunks) {
+      if (!chunks.length) {
+        chunksContainer.innerHTML = '<div class="empty-mini">No records found.</div>';
+        sourceSummary.innerText = 'No records checked.';
+        return;
+      }
+
+      sourceSummary.innerText = `${chunks.length} hotel record${chunks.length === 1 ? '' : 's'} checked.`;
+      chunksContainer.innerHTML = chunks.map((chunk, index) => {
+        const distance = Number(chunk.distance);
+        const quality = distance < 0.5 ? 'Strong match' : distance < 0.75 ? 'Good match' : 'Loose match';
+        const qualityClass = distance < 0.5 ? 'strong' : distance < 0.75 ? 'useful' : 'weak';
+        const category = chunk.category || 'Hotel record';
+        return `
+          <article class="chunk-card">
+            <div class="chunk-topline">
+              <span class="rank-badge">Source ${index + 1}</span>
+              <span class="quality-badge ${qualityClass}">${quality}</span>
+            </div>
+            <h4>${escapeHtml(chunk.title || 'Hotel record')}</h4>
+            <div class="chunk-meta">
+              <span>${escapeHtml(chunk.hotel || 'Hotel')}</span>
+              <span>${escapeHtml(category)}</span>
+            </div>
+            <details class="record-detail">
+              <summary>View details</summary>
+              <p>${escapeHtml(chunk.verbatim_content || '')}</p>
+            </details>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderFallbackNotes(notes) {
+      fallbackNotes.innerHTML = notes.map((note) => `<div class="inline-note">${escapeHtml(cleanNote(note))}</div>`).join('');
+    }
+
+    function rememberQuestion(question) {
+      history = [question, ...history.filter((item) => item !== question)].slice(0, 5);
+      historyList.innerHTML = history.map((item) => `<button class="history-item">${escapeHtml(item)}</button>`).join('');
+      historyList.querySelectorAll('.history-item').forEach((button) => {
+        button.addEventListener('click', () => {
+          setQuestion(button.innerText);
+        });
+      });
+    }
+
+    function setQuestion(value) {
+      questionInput.value = value;
+      questionInput.focus();
+      updateCharCount();
+    }
+
+    function formatAnswer(answer) {
+      const customerAnswer = String(answer || '').replace(/\s*\[DOC-\d+\]/g, '');
+      return escapeHtml(customerAnswer)
+        .replace(/^###\s*(.*)$/gm, '<h3>$1</h3>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^\*\s+(.*)$/gm, '<div class="answer-bullet">$1</div>')
+        .replace(/\n/g, '<br/>');
+    }
+
+    function updateCharCount() {
+      charCount.innerText = `${questionInput.value.length} / 600`;
+    }
+
+    function updateBackendNote() {
+      const wantsOllama = embeddingBackend.value.includes('Ollama') || llmBackend.value.includes('Ollama');
+      const wantsOpenAi = embeddingBackend.value.includes('OpenAI') || llmBackend.value.includes('OpenAI');
+      if (wantsOllama) {
+        backendNote.innerText = 'Computer-only options will switch to the hosted setup online.';
+      } else if (wantsOpenAi) {
+        backendNote.innerText = 'OpenAI needs a key here or in your hosting settings.';
+      } else {
+        backendNote.innerText = 'Default setup is ready for hosting.';
+      }
+    }
+
+    function cleanNote(note) {
+      return String(note)
+        .replace('Ollama embeddings are local-only on Render, so HuggingFace embeddings were used.', 'Local search was not available on the hosted site, so the standard search was used.')
+        .replace('Ollama LLM is local-only on Render, so Mock answers were used.', 'The hosted site used the built-in answer mode.')
+        .replace('OpenAI embeddings need an API key, so HuggingFace embeddings were used.', 'OpenAI search needs a key, so the standard search was used.')
+        .replace('OpenAI LLM needs an API key, so Mock answers were used.', 'OpenAI answers need a key, so the built-in answer mode was used.');
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    updateCharCount();
+    updateBackendNote();
   </script>
 </body>
 </html>

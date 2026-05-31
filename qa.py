@@ -1,6 +1,7 @@
 import os
 import re
 from typing import List, Dict, Any, Tuple
+from settings import FAISS_INDEX_PATH
 from retriever import retrieve_chunks
 
 STRICT_SYSTEM_PROMPT = """You are a helpful and strict AI assistant for StayChat AI.
@@ -81,9 +82,6 @@ def query_openai_llm(prompt: str, api_key: str = None, model_name: str = "gpt-3.
     )
     return response.choices[0].message.content.strip()
 
-import re
-
-
 def mock_llm_qa(query: str, context_str: str) -> str:
     """
     A high-fidelity deterministic rule-based fallback model.
@@ -147,11 +145,42 @@ def mock_llm_qa(query: str, context_str: str) -> str:
     if "cancellation" in query_lower and "grand plaza" in query_lower:
         return f"At Grand Plaza Hotel, cancellations must be made at least 72 hours prior to arrival to avoid a penalty of the first night's room rate {cite('DOC-30')}."
 
-    return "I do not have enough information in my context to answer this query."
+    return synthesize_grounded_answer(context_str)
+
+def synthesize_grounded_answer(context_str: str) -> str:
+    """
+    Creates a concise, citation-first answer from retrieved facts when the mock
+    model does not have a special-case response for the query.
+    """
+    facts = re.findall(
+        r"Document ID:\s*(DOC-\d+)\n"
+        r"Hotel:\s*(.*?)\n"
+        r"Category:\s*(.*?)\n"
+        r"Title:\s*(.*?)\n"
+        r"Fact:\s*(.*?)\n---",
+        context_str,
+        flags=re.DOTALL,
+    )
+    if not facts:
+        return "I do not have enough information in my context to answer this query."
+
+    answer_lines = ["Based on the closest retrieved hotel records:"]
+    seen = set()
+    for doc_id, hotel, category, title, fact in facts[:3]:
+        cleaned_fact = re.sub(r"\s+", " ", fact).strip()
+        if not cleaned_fact or cleaned_fact in seen:
+            continue
+        seen.add(cleaned_fact)
+        answer_lines.append(f"* **{hotel}** ({category}): {cleaned_fact} [{doc_id}]")
+
+    if len(answer_lines) == 1:
+        return "I do not have enough information in my context to answer this query."
+    answer_lines.append("I only used the retrieved context above, so details outside these records are not assumed.")
+    return "\n".join(answer_lines)
 
 def answer_query_rag(
     query: str,
-    index_path: str = "e:/Rag_Based/faiss_index",
+    index_path: str = None,
     backend_embeddings: str = "huggingface",
     backend_llm: str = "mock", # "mock", "ollama", "openai"
     k: int = 3,
@@ -167,6 +196,8 @@ def answer_query_rag(
     4. Formulates and returns the final answer along with source document metadata.
     """
     # 1. Retrieve chunks
+    # resolve default index path from settings if not provided
+    index_path = index_path or FAISS_INDEX_PATH
     retrieved = retrieve_chunks(query, index_path, backend_embeddings, k, openai_api_key)
     
     # 2. Check threshold if hallucination control is enabled
@@ -180,7 +211,8 @@ def answer_query_rag(
             "retrieved_chunks": retrieved,
             "used_llm": False,
             "threshold_blocked": True,
-            "best_distance": best_distance
+            "best_distance": best_distance,
+            "confidence_label": confidence_label(best_distance, confidence_threshold)
         }
         
     # 3. Format context
@@ -216,8 +248,16 @@ def answer_query_rag(
         "retrieved_chunks": retrieved,
         "used_llm": used_llm,
         "threshold_blocked": False,
-        "best_distance": best_distance
+        "best_distance": best_distance,
+        "confidence_label": confidence_label(best_distance, confidence_threshold)
     }
+
+def confidence_label(distance: float, threshold: float) -> str:
+    if distance <= min(0.45, threshold * 0.65):
+        return "High"
+    if distance <= threshold:
+        return "Medium"
+    return "Low"
 
 if __name__ == "__main__":
     # Test RAG query
