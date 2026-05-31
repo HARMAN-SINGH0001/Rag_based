@@ -427,7 +427,6 @@
             <div class="chunk-meta">
               <span>${escapeHtml(chunk.hotel || 'Hotel')}</span>
               <span>${escapeHtml(category)}</span>
-              <span>${escapeHtml(chunk.doc_id || '')}</span>
             </div>
             <details class="record-detail">
               <summary>View details</summary>
@@ -459,7 +458,8 @@
     }
 
     function formatAnswer(answer) {
-      return escapeHtml(answer || '')
+      const customerAnswer = String(answer || '').replace(/\s*\[DOC-\d+\]/g, '');
+      return escapeHtml(customerAnswer)
         .replace(/^###\s*(.*)$/gm, '<h3>$1</h3>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/^\*\s+(.*)$/gm, '<div class="answer-bullet">$1</div>')
