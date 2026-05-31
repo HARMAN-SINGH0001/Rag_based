@@ -3,90 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StayChat AI Hotel RAG</title>
+  <title>StayChat AI</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
+  <div class="topbar">
+    <div class="brand-mark">
+      <span class="brand-icon">S</span>
+      <span>StayChat</span>
+    </div>
+    <nav class="topnav" aria-label="Page sections">
+      <a href="#ask">Ask</a>
+      <a href="#answer">Answer</a>
+      <a href="#sources">Sources</a>
+    </nav>
+  </div>
+
   <div class="page-shell">
     <header class="hero-panel">
       <div>
-        <p class="eyebrow">Grounded hotel assistant</p>
-        <h1>StayChat AI</h1>
-        <p class="hero-copy">Ask about amenities, policies, locations, and reviews. Every answer is tied back to retrieved hotel records.</p>
+        <p class="eyebrow">Hotel help desk</p>
+        <h1>Find the right stay faster.</h1>
+        <p class="hero-copy">Ask about WiFi, breakfast, cancellation rules, beach access, reviews, or amenities. StayChat checks the hotel records and gives you a clear answer.</p>
       </div>
-      <div class="hero-actions">
-        <button class="pill-button sample-button" data-question="Which hotels have free WiFi and complimentary breakfast?">WiFi + Breakfast</button>
-        <button class="pill-button sample-button" data-question="What is the cancellation policy of Hotel X?">Hotel X Policy</button>
-        <button class="pill-button sample-button" data-question="Suggest a hotel with excellent reviews near the beach.">Beach Stay</button>
-        <button class="pill-button sample-button" data-question="What amenities does Alpine Lodge offer?">Alpine Amenities</button>
+      <div class="booking-strip" aria-label="Popular question shortcuts">
+        <button class="sample-button booking-pill" data-question="Which hotels have free WiFi and complimentary breakfast?">
+          <span>Need included extras</span>
+          <strong>WiFi + breakfast</strong>
+        </button>
+        <button class="sample-button booking-pill" data-question="What is the cancellation policy of Hotel X?">
+          <span>Check before booking</span>
+          <strong>Cancellation policy</strong>
+        </button>
+        <button class="sample-button booking-pill" data-question="Suggest a hotel with excellent reviews near the beach.">
+          <span>Plan a coastal trip</span>
+          <strong>Beach stay</strong>
+        </button>
       </div>
     </header>
 
     <main class="grid-layout">
-      <section class="main-card query-card">
+      <section class="main-card query-card" id="ask">
         <div class="section-header">
           <div>
-            <h2>Ask a question</h2>
-            <p>Use the safe defaults for Render, or switch model backends when you have local Ollama/OpenAI configured.</p>
+            <h2>What do you want to know?</h2>
+            <p>Choose a hotel or topic, then ask naturally.</p>
           </div>
-          <button id="reset-button" class="ghost-button">Reset</button>
+          <button id="reset-button" class="ghost-button">Clear</button>
+        </div>
+
+        <div class="shortcut-panel">
+          <div>
+            <div class="mini-title">Hotels</div>
+            <div class="quick-row" aria-label="Hotel shortcuts">
+              <button class="quick-chip prefix-chip" data-prefix="Grand Plaza Hotel">Grand Plaza</button>
+              <button class="quick-chip prefix-chip" data-prefix="Seaside Haven Resort">Seaside Haven</button>
+              <button class="quick-chip prefix-chip" data-prefix="Hotel X">Hotel X</button>
+              <button class="quick-chip prefix-chip" data-prefix="Alpine Lodge">Alpine Lodge</button>
+              <button class="quick-chip prefix-chip" data-prefix="Sunrise B&B">Sunrise B&B</button>
+            </div>
+          </div>
+          <div>
+            <div class="mini-title">Topics</div>
+            <div class="quick-row" aria-label="Topic shortcuts">
+              <button class="quick-chip topic-chip" data-topic="amenities">Amenities</button>
+              <button class="quick-chip topic-chip" data-topic="reviews">Reviews</button>
+              <button class="quick-chip topic-chip" data-topic="location">Location</button>
+              <button class="quick-chip topic-chip" data-topic="cancellation policy">Cancellation</button>
+              <button class="quick-chip topic-chip" data-topic="breakfast and WiFi">Breakfast + WiFi</button>
+            </div>
+          </div>
         </div>
 
         <div class="control-group">
-          <label for="question">Question</label>
-          <textarea id="question" rows="5" maxlength="600" placeholder="Example: Which hotel should I choose for a beachfront stay with strong reviews?"></textarea>
+          <label for="question">Your question</label>
+          <textarea id="question" rows="5" maxlength="600" placeholder="Example: Which hotel is best for a beach trip with strong reviews?"></textarea>
           <div class="field-footer">
             <span id="char-count">0 / 600</span>
-            <span>Tip: name the hotel or feature for sharper retrieval.</span>
+            <span>Name a hotel or topic for the best result.</span>
           </div>
         </div>
-
-        <div class="quick-row" aria-label="Quick filters">
-          <button class="quick-chip" data-append=" with citations">Add citations</button>
-          <button class="quick-chip" data-append=" compare the options">Compare</button>
-          <button class="quick-chip" data-append=" summarize briefly">Brief</button>
-        </div>
-
-        <div class="control-grid">
-          <div class="control-group">
-            <label for="embedding-backend">Embedding Backend</label>
-            <select id="embedding-backend">
-              <option>HuggingFace (local)</option>
-              <option>Ollama (local)</option>
-              <option>OpenAI API</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label for="llm-backend">Answer Backend</label>
-            <select id="llm-backend">
-              <option>Mock (High-Fidelity)</option>
-              <option>Ollama (tinyllama:chat)</option>
-              <option>OpenAI API</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label for="topk">Retrieved Sources: <strong id="topk-value">3</strong></label>
-            <input id="topk" type="range" min="1" max="8" value="3" />
-          </div>
-          <div class="control-group">
-            <label for="threshold">Strictness: <strong id="threshold-value">0.75</strong></label>
-            <input id="threshold" type="range" min="0.2" max="1.5" step="0.05" value="0.75" />
-          </div>
-        </div>
-
-        <div class="control-grid">
-          <div class="control-group full-width">
-            <label for="openai-key">OpenAI API Key (optional)</label>
-            <input id="openai-key" type="password" placeholder="Only needed when using OpenAI backends" />
-          </div>
-        </div>
-
-        <div id="backend-note" class="inline-note">Render-safe default: HuggingFace retrieval + Mock answer mode.</div>
 
         <div class="action-bar">
-          <button id="submit-button" class="primary-button">Generate Answer</button>
-          <span id="status-label" class="status-label">Ready.</span>
+          <button id="submit-button" class="primary-button">Ask StayChat</button>
+          <span id="status-label" class="status-label">Ready when you are.</span>
         </div>
+
+        <details class="advanced-settings">
+          <summary>Advanced settings</summary>
+          <div class="control-grid advanced-grid">
+            <div class="control-group">
+              <label for="embedding-backend">Search method</label>
+              <select id="embedding-backend">
+                <option value="HuggingFace (local)">Standard search</option>
+                <option value="Ollama (local)">Search on this computer</option>
+                <option value="OpenAI API">OpenAI search</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="llm-backend">Answer style</label>
+              <select id="llm-backend">
+                <option value="Mock (High-Fidelity)">Built-in answer</option>
+                <option value="Ollama (tinyllama:chat)">Answer on this computer</option>
+                <option value="OpenAI API">OpenAI answer</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="topk">Sources checked: <strong id="topk-value">3</strong></label>
+              <input id="topk" type="range" min="1" max="8" value="3" />
+            </div>
+            <div class="control-group">
+              <label for="threshold">Answer caution: <strong id="threshold-value">0.75</strong></label>
+              <input id="threshold" type="range" min="0.2" max="1.5" step="0.05" value="0.75" />
+            </div>
+            <div class="control-group full-width">
+              <label for="openai-key">OpenAI key</label>
+              <input id="openai-key" type="password" placeholder="Only needed if you choose OpenAI" />
+            </div>
+          </div>
+          <div id="backend-note" class="inline-note">Default setup is ready for hosting.</div>
+        </details>
 
         <div class="history-panel">
           <div class="mini-title">Recent questions</div>
@@ -94,26 +130,34 @@
         </div>
       </section>
 
-      <section class="main-card output-card">
+      <section class="main-card output-card" id="answer">
         <div class="section-header">
           <div>
             <h2>Answer</h2>
-            <p id="backend-used">Waiting for a query.</p>
+            <p id="backend-used">Ask a question to begin.</p>
           </div>
           <button id="copy-button" class="ghost-button" disabled>Copy</button>
         </div>
 
-        <div id="answer-card" class="answer-card empty-state">Submit a query to see a grounded hotel answer.</div>
+        <div id="answer-card" class="answer-card empty-state">
+          <div>
+            <strong>Your answer will appear here.</strong>
+            <span>Sources and booking details will show below after you ask.</span>
+          </div>
+        </div>
         <div id="fallback-notes" class="notes-list"></div>
 
         <div class="meta-panel">
-          <div class="meta-item"><span>Top-k</span><strong id="meta-topk">3</strong></div>
-          <div class="meta-item"><span>Best Distance</span><strong id="meta-distance">-</strong></div>
-          <div class="meta-item"><span>Confidence</span><strong id="meta-confidence">-</strong></div>
-          <div class="meta-item"><span>Blocked</span><strong id="meta-blocked">No</strong></div>
+          <div class="meta-item"><span>Sources</span><strong id="meta-topk">3</strong></div>
+          <div class="meta-item"><span>Closest match</span><strong id="meta-distance">-</strong></div>
+          <div class="meta-item"><span>Match quality</span><strong id="meta-confidence">-</strong></div>
+          <div class="meta-item"><span>Answered</span><strong id="meta-blocked">-</strong></div>
         </div>
 
-        <h3 class="section-title">Retrieved Sources</h3>
+        <div class="sources-heading" id="sources">
+          <h3 class="section-title">Checked Records</h3>
+          <span id="source-summary">No records checked yet.</span>
+        </div>
         <div id="chunks-container" class="chunks-grid"></div>
       </section>
     </main>
@@ -140,29 +184,37 @@
     const metaDistance = document.getElementById('meta-distance');
     const metaConfidence = document.getElementById('meta-confidence');
     const metaBlocked = document.getElementById('meta-blocked');
+    const sourceSummary = document.getElementById('source-summary');
     const embeddingBackend = document.getElementById('embedding-backend');
     const llmBackend = document.getElementById('llm-backend');
     const openaiKey = document.getElementById('openai-key');
 
+    let selectedHotel = '';
     let lastAnswerText = '';
     let history = [];
 
     document.querySelectorAll('.sample-button').forEach((button) => {
       button.addEventListener('click', () => {
-        questionInput.value = button.dataset.question;
-        questionInput.focus();
-        updateCharCount();
+        setQuestion(button.dataset.question);
       });
     });
 
-    document.querySelectorAll('.quick-chip').forEach((button) => {
+    document.querySelectorAll('.prefix-chip').forEach((button) => {
       button.addEventListener('click', () => {
-        const suffix = button.dataset.append;
-        if (!questionInput.value.trim()) return;
-        if (!questionInput.value.toLowerCase().includes(suffix.trim())) {
-          questionInput.value = `${questionInput.value.trim()}${suffix}`;
-          updateCharCount();
+        selectedHotel = button.dataset.prefix;
+        document.querySelectorAll('.prefix-chip').forEach((chip) => chip.classList.remove('is-active'));
+        button.classList.add('is-active');
+        if (!questionInput.value.trim()) {
+          setQuestion(`Tell me about ${selectedHotel}.`);
         }
+      });
+    });
+
+    document.querySelectorAll('.topic-chip').forEach((button) => {
+      button.addEventListener('click', () => {
+        const topic = button.dataset.topic;
+        const hotelText = selectedHotel ? `${selectedHotel}'s ` : '';
+        setQuestion(`What should I know about ${hotelText}${topic}?`);
       });
     });
 
@@ -178,16 +230,19 @@
     llmBackend.addEventListener('change', updateBackendNote);
 
     resetButton.addEventListener('click', () => {
+      selectedHotel = '';
+      document.querySelectorAll('.prefix-chip').forEach((chip) => chip.classList.remove('is-active'));
       questionInput.value = '';
       answerCard.className = 'answer-card empty-state';
-      answerCard.innerText = 'Submit a query to see a grounded hotel answer.';
+      answerCard.innerHTML = '<div><strong>Your answer will appear here.</strong><span>Sources and booking details will show below after you ask.</span></div>';
       chunksContainer.innerHTML = '';
       fallbackNotes.innerHTML = '';
-      backendUsed.innerText = 'Waiting for a query.';
+      backendUsed.innerText = 'Ask a question to begin.';
       metaDistance.innerText = '-';
       metaConfidence.innerText = '-';
-      metaBlocked.innerText = 'No';
-      statusLabel.innerText = 'Ready.';
+      metaBlocked.innerText = '-';
+      sourceSummary.innerText = 'No records checked yet.';
+      statusLabel.innerText = 'Ready when you are.';
       statusLabel.className = 'status-label';
       copyButton.disabled = true;
       lastAnswerText = '';
@@ -211,7 +266,7 @@
     async function runQuery() {
       const question = questionInput.value.trim();
       if (!question) {
-        statusLabel.innerText = 'Please enter a question first.';
+        statusLabel.innerText = 'Please type a question first.';
         statusLabel.className = 'status-label status-warning';
         return;
       }
@@ -236,18 +291,18 @@
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Unknown server error');
+          throw new Error(errorData.error || 'Something went wrong');
         }
 
         const data = await response.json();
         answerCard.classList.remove('loading');
         renderResult(data);
         rememberQuestion(question);
-        statusLabel.innerText = 'Answer generated successfully.';
+        statusLabel.innerText = 'Answer ready.';
       } catch (error) {
         answerCard.className = 'answer-card';
         answerCard.innerHTML = `<div class="error-box">${escapeHtml(error.message)}</div>`;
-        statusLabel.innerText = 'Error generating response.';
+        statusLabel.innerText = 'Could not answer that question.';
         statusLabel.className = 'status-label status-error';
         copyButton.disabled = true;
       } finally {
@@ -259,28 +314,29 @@
       submitButton.disabled = true;
       copyButton.disabled = true;
       answerCard.className = 'answer-card loading';
-      answerCard.innerHTML = '<div class="loader"></div><strong>Retrieving sources...</strong><span>Building a grounded answer from the closest hotel records.</span>';
-      statusLabel.innerText = 'Query in progress...';
+      answerCard.innerHTML = '<div class="loader"></div><strong>Checking hotel records...</strong><span>This usually takes a few seconds.</span>';
+      statusLabel.innerText = 'Checking records...';
       statusLabel.className = 'status-label';
       chunksContainer.innerHTML = '';
       fallbackNotes.innerHTML = '';
       metaTopk.innerText = payload.k;
       metaDistance.innerText = '-';
       metaConfidence.innerText = '-';
-      metaBlocked.innerText = 'No';
+      metaBlocked.innerText = '-';
+      sourceSummary.innerText = 'Looking for matching records...';
     }
 
     function renderResult(data) {
       lastAnswerText = data.answer || '';
       copyButton.disabled = !lastAnswerText;
-      metaBlocked.innerText = data.threshold_blocked ? 'Yes' : 'No';
+      metaBlocked.innerText = data.threshold_blocked ? 'No' : 'Yes';
       metaDistance.innerText = Number(data.best_distance).toFixed(4);
       metaConfidence.innerText = data.confidence_label || '-';
-      backendUsed.innerText = formatBackends(data.active_backends, data.used_llm);
+      backendUsed.innerText = data.threshold_blocked ? 'No answer shown because the records did not match well enough.' : 'Answer based on hotel records.';
 
       if (data.threshold_blocked) {
         answerCard.className = 'answer-card';
-        answerCard.innerHTML = `<div class="warning-box">The retrieved context was too weak for the current strictness setting, so the app refused the answer instead of guessing.</div>`;
+        answerCard.innerHTML = `<div class="warning-box">I could not find a strong enough match in the hotel records, so I did not guess.</div>`;
       } else {
         answerCard.className = 'answer-card';
         answerCard.innerHTML = `<div class="answer-copy">${formatAnswer(data.answer)}</div>`;
@@ -292,25 +348,27 @@
 
     function renderChunks(chunks) {
       if (!chunks.length) {
-        chunksContainer.innerHTML = '<div class="empty-mini">No chunks returned.</div>';
+        chunksContainer.innerHTML = '<div class="empty-mini">No records found.</div>';
+        sourceSummary.innerText = 'No records checked.';
         return;
       }
 
+      sourceSummary.innerText = `${chunks.length} record${chunks.length === 1 ? '' : 's'} checked for this answer.`;
       chunksContainer.innerHTML = chunks.map((chunk, index) => {
         const distance = Number(chunk.distance);
-        const quality = distance < 0.5 ? 'Strong' : distance < 0.75 ? 'Useful' : 'Weak';
-        const qualityClass = quality.toLowerCase();
+        const quality = distance < 0.5 ? 'Strong match' : distance < 0.75 ? 'Good match' : 'Loose match';
+        const qualityClass = distance < 0.5 ? 'strong' : distance < 0.75 ? 'useful' : 'weak';
         return `
           <article class="chunk-card">
             <div class="chunk-topline">
-              <span class="rank-badge">#${index + 1}</span>
+              <span class="rank-badge">${index + 1}</span>
               <span class="quality-badge ${qualityClass}">${quality}</span>
               <span class="chip">${escapeHtml(chunk.doc_id || '')}</span>
             </div>
-            <h4>${escapeHtml(chunk.title || 'Untitled source')}</h4>
-            <div class="chunk-meta">${escapeHtml(chunk.hotel || '')} / ${escapeHtml(chunk.category || '')} / Distance: ${distance.toFixed(4)}</div>
+            <h4>${escapeHtml(chunk.title || 'Hotel record')}</h4>
+            <div class="chunk-meta">${escapeHtml(chunk.hotel || '')} / ${escapeHtml(chunk.category || '')}</div>
             <details>
-              <summary>View source text</summary>
+              <summary>Read record</summary>
               <p>${escapeHtml(chunk.verbatim_content || '')}</p>
             </details>
           </article>
@@ -319,7 +377,7 @@
     }
 
     function renderFallbackNotes(notes) {
-      fallbackNotes.innerHTML = notes.map((note) => `<div class="inline-note">${escapeHtml(note)}</div>`).join('');
+      fallbackNotes.innerHTML = notes.map((note) => `<div class="inline-note">${escapeHtml(cleanNote(note))}</div>`).join('');
     }
 
     function rememberQuestion(question) {
@@ -327,16 +385,15 @@
       historyList.innerHTML = history.map((item) => `<button class="history-item">${escapeHtml(item)}</button>`).join('');
       historyList.querySelectorAll('.history-item').forEach((button) => {
         button.addEventListener('click', () => {
-          questionInput.value = button.innerText;
-          updateCharCount();
+          setQuestion(button.innerText);
         });
       });
     }
 
-    function formatBackends(backends, usedLlm) {
-      if (!backends) return usedLlm ? 'Generated with selected LLM.' : 'Answered with grounded mock mode.';
-      const llmLabel = backends.llm === 'mock' ? 'Mock grounded answer' : backends.llm;
-      return `Retrieval: ${backends.embeddings} / Answer: ${llmLabel}`;
+    function setQuestion(value) {
+      questionInput.value = value;
+      questionInput.focus();
+      updateCharCount();
     }
 
     function formatAnswer(answer) {
@@ -355,12 +412,20 @@
       const wantsOllama = embeddingBackend.value.includes('Ollama') || llmBackend.value.includes('Ollama');
       const wantsOpenAi = embeddingBackend.value.includes('OpenAI') || llmBackend.value.includes('OpenAI');
       if (wantsOllama) {
-        backendNote.innerText = 'Ollama works locally. On Render, the server will fall back to HuggingFace + Mock so the demo keeps running.';
+        backendNote.innerText = 'Computer-only options will switch to the hosted setup online.';
       } else if (wantsOpenAi) {
-        backendNote.innerText = 'OpenAI mode needs an API key here or an OPENAI_API_KEY environment variable on Render.';
+        backendNote.innerText = 'OpenAI needs a key here or in your hosting settings.';
       } else {
-        backendNote.innerText = 'Render-safe default: HuggingFace retrieval + Mock answer mode.';
+        backendNote.innerText = 'Default setup is ready for hosting.';
       }
+    }
+
+    function cleanNote(note) {
+      return String(note)
+        .replace('Ollama embeddings are local-only on Render, so HuggingFace embeddings were used.', 'Local search was not available on the hosted site, so the standard search was used.')
+        .replace('Ollama LLM is local-only on Render, so Mock answers were used.', 'The hosted site used the built-in answer mode.')
+        .replace('OpenAI embeddings need an API key, so HuggingFace embeddings were used.', 'OpenAI search needs a key, so the standard search was used.')
+        .replace('OpenAI LLM needs an API key, so Mock answers were used.', 'OpenAI answers need a key, so the built-in answer mode was used.');
     }
 
     function escapeHtml(value) {
