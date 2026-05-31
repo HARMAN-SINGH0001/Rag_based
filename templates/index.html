@@ -10,13 +10,15 @@
   <div class="page-shell">
     <header class="hero-panel">
       <div>
+        <p class="eyebrow">Grounded hotel assistant</p>
         <h1>StayChat AI</h1>
-        <p class="hero-copy">Hotel RAG Q&A — interactive HTML interface with strict retrieval grounding.</p>
+        <p class="hero-copy">Ask about amenities, policies, locations, and reviews. Every answer is tied back to retrieved hotel records.</p>
       </div>
       <div class="hero-actions">
-        <button class="pill-button" id="sample-q1">WiFi + Breakfast</button>
-        <button class="pill-button" id="sample-q2">Hotel X Cancellation</button>
-        <button class="pill-button" id="sample-q3">Beach Recommendation</button>
+        <button class="pill-button sample-button" data-question="Which hotels have free WiFi and complimentary breakfast?">WiFi + Breakfast</button>
+        <button class="pill-button sample-button" data-question="What is the cancellation policy of Hotel X?">Hotel X Policy</button>
+        <button class="pill-button sample-button" data-question="Suggest a hotel with excellent reviews near the beach.">Beach Stay</button>
+        <button class="pill-button sample-button" data-question="What amenities does Alpine Lodge offer?">Alpine Amenities</button>
       </div>
     </header>
 
@@ -24,14 +26,25 @@
       <section class="main-card query-card">
         <div class="section-header">
           <div>
-            <h2>Ask a hotel question</h2>
-            <p>Type a query about hotels, amenities, policies, location, or reviews. The system uses semantic retrieval to ground answers.</p>
+            <h2>Ask a question</h2>
+            <p>Use the safe defaults for Render, or switch model backends when you have local Ollama/OpenAI configured.</p>
           </div>
+          <button id="reset-button" class="ghost-button">Reset</button>
         </div>
 
         <div class="control-group">
           <label for="question">Question</label>
-          <textarea id="question" rows="4" placeholder="Which hotels have free WiFi and complimentary breakfast?"></textarea>
+          <textarea id="question" rows="5" maxlength="600" placeholder="Example: Which hotel should I choose for a beachfront stay with strong reviews?"></textarea>
+          <div class="field-footer">
+            <span id="char-count">0 / 600</span>
+            <span>Tip: name the hotel or feature for sharper retrieval.</span>
+          </div>
+        </div>
+
+        <div class="quick-row" aria-label="Quick filters">
+          <button class="quick-chip" data-append=" with citations">Add citations</button>
+          <button class="quick-chip" data-append=" compare the options">Compare</button>
+          <button class="quick-chip" data-append=" summarize briefly">Brief</button>
         </div>
 
         <div class="control-grid">
@@ -44,7 +57,7 @@
             </select>
           </div>
           <div class="control-group">
-            <label for="llm-backend">LLM Backend</label>
+            <label for="llm-backend">Answer Backend</label>
             <select id="llm-backend">
               <option>Mock (High-Fidelity)</option>
               <option>Ollama (tinyllama:chat)</option>
@@ -52,39 +65,55 @@
             </select>
           </div>
           <div class="control-group">
-            <label for="topk">Top-K</label>
-            <input id="topk" type="number" min="1" max="8" value="3" />
+            <label for="topk">Retrieved Sources: <strong id="topk-value">3</strong></label>
+            <input id="topk" type="range" min="1" max="8" value="3" />
           </div>
           <div class="control-group">
-            <label for="threshold">Confidence Threshold</label>
-            <input id="threshold" type="number" min="0.1" max="2" step="0.05" value="0.75" />
+            <label for="threshold">Strictness: <strong id="threshold-value">0.75</strong></label>
+            <input id="threshold" type="range" min="0.2" max="1.5" step="0.05" value="0.75" />
           </div>
         </div>
 
         <div class="control-grid">
           <div class="control-group full-width">
             <label for="openai-key">OpenAI API Key (optional)</label>
-            <input id="openai-key" type="password" placeholder="sk-..." />
+            <input id="openai-key" type="password" placeholder="Only needed when using OpenAI backends" />
           </div>
         </div>
+
+        <div id="backend-note" class="inline-note">Render-safe default: HuggingFace retrieval + Mock answer mode.</div>
 
         <div class="action-bar">
           <button id="submit-button" class="primary-button">Generate Answer</button>
           <span id="status-label" class="status-label">Ready.</span>
         </div>
+
+        <div class="history-panel">
+          <div class="mini-title">Recent questions</div>
+          <div id="history-list" class="history-list">No questions yet.</div>
+        </div>
       </section>
 
       <section class="main-card output-card">
-        <h2>Answer</h2>
-        <div id="answer-card" class="answer-card empty-state">Submit a query to see the grounded hotel answer.</div>
+        <div class="section-header">
+          <div>
+            <h2>Answer</h2>
+            <p id="backend-used">Waiting for a query.</p>
+          </div>
+          <button id="copy-button" class="ghost-button" disabled>Copy</button>
+        </div>
+
+        <div id="answer-card" class="answer-card empty-state">Submit a query to see a grounded hotel answer.</div>
+        <div id="fallback-notes" class="notes-list"></div>
 
         <div class="meta-panel">
           <div class="meta-item"><span>Top-k</span><strong id="meta-topk">3</strong></div>
-          <div class="meta-item"><span>Best Distance</span><strong id="meta-distance">—</strong></div>
-          <div class="meta-item"><span>Threshold Blocked</span><strong id="meta-blocked">No</strong></div>
+          <div class="meta-item"><span>Best Distance</span><strong id="meta-distance">-</strong></div>
+          <div class="meta-item"><span>Confidence</span><strong id="meta-confidence">-</strong></div>
+          <div class="meta-item"><span>Blocked</span><strong id="meta-blocked">No</strong></div>
         </div>
 
-        <h3 class="section-title">Retrieved Chunks</h3>
+        <h3 class="section-title">Retrieved Sources</h3>
         <div id="chunks-container" class="chunks-grid"></div>
       </section>
     </main>
@@ -93,49 +122,111 @@
   <script>
     const questionInput = document.getElementById('question');
     const submitButton = document.getElementById('submit-button');
+    const resetButton = document.getElementById('reset-button');
+    const copyButton = document.getElementById('copy-button');
     const answerCard = document.getElementById('answer-card');
     const statusLabel = document.getElementById('status-label');
     const chunksContainer = document.getElementById('chunks-container');
+    const fallbackNotes = document.getElementById('fallback-notes');
+    const backendNote = document.getElementById('backend-note');
+    const backendUsed = document.getElementById('backend-used');
+    const historyList = document.getElementById('history-list');
+    const charCount = document.getElementById('char-count');
+    const topkInput = document.getElementById('topk');
+    const thresholdInput = document.getElementById('threshold');
+    const topkValue = document.getElementById('topk-value');
+    const thresholdValue = document.getElementById('threshold-value');
     const metaTopk = document.getElementById('meta-topk');
     const metaDistance = document.getElementById('meta-distance');
+    const metaConfidence = document.getElementById('meta-confidence');
     const metaBlocked = document.getElementById('meta-blocked');
+    const embeddingBackend = document.getElementById('embedding-backend');
+    const llmBackend = document.getElementById('llm-backend');
+    const openaiKey = document.getElementById('openai-key');
 
-    document.getElementById('sample-q1').addEventListener('click', () => {
-      questionInput.value = 'Which hotels have free WiFi and complimentary breakfast?';
-    });
-    document.getElementById('sample-q2').addEventListener('click', () => {
-      questionInput.value = 'What is the cancellation policy of Hotel X?';
-    });
-    document.getElementById('sample-q3').addEventListener('click', () => {
-      questionInput.value = 'Suggest a hotel with excellent reviews near the beach.';
+    let lastAnswerText = '';
+    let history = [];
+
+    document.querySelectorAll('.sample-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        questionInput.value = button.dataset.question;
+        questionInput.focus();
+        updateCharCount();
+      });
     });
 
-    submitButton.addEventListener('click', async () => {
+    document.querySelectorAll('.quick-chip').forEach((button) => {
+      button.addEventListener('click', () => {
+        const suffix = button.dataset.append;
+        if (!questionInput.value.trim()) return;
+        if (!questionInput.value.toLowerCase().includes(suffix.trim())) {
+          questionInput.value = `${questionInput.value.trim()}${suffix}`;
+          updateCharCount();
+        }
+      });
+    });
+
+    questionInput.addEventListener('input', updateCharCount);
+    topkInput.addEventListener('input', () => {
+      topkValue.innerText = topkInput.value;
+      metaTopk.innerText = topkInput.value;
+    });
+    thresholdInput.addEventListener('input', () => {
+      thresholdValue.innerText = Number(thresholdInput.value).toFixed(2);
+    });
+    embeddingBackend.addEventListener('change', updateBackendNote);
+    llmBackend.addEventListener('change', updateBackendNote);
+
+    resetButton.addEventListener('click', () => {
+      questionInput.value = '';
+      answerCard.className = 'answer-card empty-state';
+      answerCard.innerText = 'Submit a query to see a grounded hotel answer.';
+      chunksContainer.innerHTML = '';
+      fallbackNotes.innerHTML = '';
+      backendUsed.innerText = 'Waiting for a query.';
+      metaDistance.innerText = '-';
+      metaConfidence.innerText = '-';
+      metaBlocked.innerText = 'No';
+      statusLabel.innerText = 'Ready.';
+      statusLabel.className = 'status-label';
+      copyButton.disabled = true;
+      lastAnswerText = '';
+      updateCharCount();
+    });
+
+    copyButton.addEventListener('click', async () => {
+      if (!lastAnswerText) return;
+      await navigator.clipboard.writeText(lastAnswerText);
+      copyButton.innerText = 'Copied';
+      setTimeout(() => { copyButton.innerText = 'Copy'; }, 1200);
+    });
+
+    submitButton.addEventListener('click', runQuery);
+    questionInput.addEventListener('keydown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        runQuery();
+      }
+    });
+
+    async function runQuery() {
       const question = questionInput.value.trim();
       if (!question) {
         statusLabel.innerText = 'Please enter a question first.';
-        statusLabel.classList.add('status-warning');
+        statusLabel.className = 'status-label status-warning';
         return;
       }
 
       const payload = {
         question,
-        embedding_backend: document.getElementById('embedding-backend').value,
-        llm_backend: document.getElementById('llm-backend').value,
-        k: Number(document.getElementById('topk').value),
+        embedding_backend: embeddingBackend.value,
+        llm_backend: llmBackend.value,
+        k: Number(topkInput.value),
         hallucination_control: true,
-        confidence_threshold: Number(document.getElementById('threshold').value),
-        openai_api_key: document.getElementById('openai-key').value || null
+        confidence_threshold: Number(thresholdInput.value),
+        openai_api_key: openaiKey.value || null
       };
 
-      answerCard.classList.add('loading');
-      answerCard.innerHTML = '<div class="loader"></div>Generating response...';
-      statusLabel.innerText = 'Query in progress...';
-      statusLabel.className = 'status-label';
-      chunksContainer.innerHTML = '';
-      metaTopk.innerText = payload.k;
-      metaDistance.innerText = '—';
-      metaBlocked.innerText = 'No';
+      setLoading(payload);
 
       try {
         const response = await fetch('/query', {
@@ -151,43 +242,138 @@
         const data = await response.json();
         answerCard.classList.remove('loading');
         renderResult(data);
+        rememberQuestion(question);
         statusLabel.innerText = 'Answer generated successfully.';
       } catch (error) {
-        answerCard.classList.remove('loading');
-        answerCard.innerHTML = `<div class="error-box">${error.message}</div>`;
+        answerCard.className = 'answer-card';
+        answerCard.innerHTML = `<div class="error-box">${escapeHtml(error.message)}</div>`;
         statusLabel.innerText = 'Error generating response.';
-        statusLabel.classList.add('status-error');
-      }
-    });
-
-    function renderResult(data) {
-      if (data.threshold_blocked) {
-        metaBlocked.innerText = 'Yes';
-        answerCard.innerHTML = `<div class="warning-box">The query was blocked because the retrieval confidence fell below the threshold. No answer was generated to prevent hallucination.</div>`;
-      } else {
-        metaBlocked.innerText = 'No';
-        answerCard.innerHTML = `<div class="answer-copy">${data.answer.replace(/\n/g, '<br/>')}</div>`;
-      }
-      metaDistance.innerText = data.best_distance.toFixed(4);
-
-      if (Array.isArray(data.retrieved_chunks)) {
-        chunksContainer.innerHTML = data.retrieved_chunks.map((chunk, index) => {
-          return `
-            <article class="chunk-card">
-              <div class="chunk-info">
-                <span class="chip">${chunk.doc_id}</span>
-                <h4>${chunk.title}</h4>
-                <div class="chunk-meta">${chunk.hotel} • ${chunk.category} • Distance: ${chunk.distance.toFixed(4)}</div>
-              </div>
-              <details>
-                <summary>View chunk text</summary>
-                <p>${chunk.verbatim_content}</p>
-              </details>
-            </article>
-          `;
-        }).join('');
+        statusLabel.className = 'status-label status-error';
+        copyButton.disabled = true;
+      } finally {
+        submitButton.disabled = false;
       }
     }
+
+    function setLoading(payload) {
+      submitButton.disabled = true;
+      copyButton.disabled = true;
+      answerCard.className = 'answer-card loading';
+      answerCard.innerHTML = '<div class="loader"></div><strong>Retrieving sources...</strong><span>Building a grounded answer from the closest hotel records.</span>';
+      statusLabel.innerText = 'Query in progress...';
+      statusLabel.className = 'status-label';
+      chunksContainer.innerHTML = '';
+      fallbackNotes.innerHTML = '';
+      metaTopk.innerText = payload.k;
+      metaDistance.innerText = '-';
+      metaConfidence.innerText = '-';
+      metaBlocked.innerText = 'No';
+    }
+
+    function renderResult(data) {
+      lastAnswerText = data.answer || '';
+      copyButton.disabled = !lastAnswerText;
+      metaBlocked.innerText = data.threshold_blocked ? 'Yes' : 'No';
+      metaDistance.innerText = Number(data.best_distance).toFixed(4);
+      metaConfidence.innerText = data.confidence_label || '-';
+      backendUsed.innerText = formatBackends(data.active_backends, data.used_llm);
+
+      if (data.threshold_blocked) {
+        answerCard.className = 'answer-card';
+        answerCard.innerHTML = `<div class="warning-box">The retrieved context was too weak for the current strictness setting, so the app refused the answer instead of guessing.</div>`;
+      } else {
+        answerCard.className = 'answer-card';
+        answerCard.innerHTML = `<div class="answer-copy">${formatAnswer(data.answer)}</div>`;
+      }
+
+      renderFallbackNotes(data.fallback_notes || []);
+      renderChunks(data.retrieved_chunks || []);
+    }
+
+    function renderChunks(chunks) {
+      if (!chunks.length) {
+        chunksContainer.innerHTML = '<div class="empty-mini">No chunks returned.</div>';
+        return;
+      }
+
+      chunksContainer.innerHTML = chunks.map((chunk, index) => {
+        const distance = Number(chunk.distance);
+        const quality = distance < 0.5 ? 'Strong' : distance < 0.75 ? 'Useful' : 'Weak';
+        const qualityClass = quality.toLowerCase();
+        return `
+          <article class="chunk-card">
+            <div class="chunk-topline">
+              <span class="rank-badge">#${index + 1}</span>
+              <span class="quality-badge ${qualityClass}">${quality}</span>
+              <span class="chip">${escapeHtml(chunk.doc_id || '')}</span>
+            </div>
+            <h4>${escapeHtml(chunk.title || 'Untitled source')}</h4>
+            <div class="chunk-meta">${escapeHtml(chunk.hotel || '')} / ${escapeHtml(chunk.category || '')} / Distance: ${distance.toFixed(4)}</div>
+            <details>
+              <summary>View source text</summary>
+              <p>${escapeHtml(chunk.verbatim_content || '')}</p>
+            </details>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderFallbackNotes(notes) {
+      fallbackNotes.innerHTML = notes.map((note) => `<div class="inline-note">${escapeHtml(note)}</div>`).join('');
+    }
+
+    function rememberQuestion(question) {
+      history = [question, ...history.filter((item) => item !== question)].slice(0, 5);
+      historyList.innerHTML = history.map((item) => `<button class="history-item">${escapeHtml(item)}</button>`).join('');
+      historyList.querySelectorAll('.history-item').forEach((button) => {
+        button.addEventListener('click', () => {
+          questionInput.value = button.innerText;
+          updateCharCount();
+        });
+      });
+    }
+
+    function formatBackends(backends, usedLlm) {
+      if (!backends) return usedLlm ? 'Generated with selected LLM.' : 'Answered with grounded mock mode.';
+      const llmLabel = backends.llm === 'mock' ? 'Mock grounded answer' : backends.llm;
+      return `Retrieval: ${backends.embeddings} / Answer: ${llmLabel}`;
+    }
+
+    function formatAnswer(answer) {
+      return escapeHtml(answer || '')
+        .replace(/^###\s*(.*)$/gm, '<h3>$1</h3>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^\*\s+(.*)$/gm, '<div class="answer-bullet">$1</div>')
+        .replace(/\n/g, '<br/>');
+    }
+
+    function updateCharCount() {
+      charCount.innerText = `${questionInput.value.length} / 600`;
+    }
+
+    function updateBackendNote() {
+      const wantsOllama = embeddingBackend.value.includes('Ollama') || llmBackend.value.includes('Ollama');
+      const wantsOpenAi = embeddingBackend.value.includes('OpenAI') || llmBackend.value.includes('OpenAI');
+      if (wantsOllama) {
+        backendNote.innerText = 'Ollama works locally. On Render, the server will fall back to HuggingFace + Mock so the demo keeps running.';
+      } else if (wantsOpenAi) {
+        backendNote.innerText = 'OpenAI mode needs an API key here or an OPENAI_API_KEY environment variable on Render.';
+      } else {
+        backendNote.innerText = 'Render-safe default: HuggingFace retrieval + Mock answer mode.';
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    updateCharCount();
+    updateBackendNote();
   </script>
 </body>
 </html>

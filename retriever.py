@@ -1,8 +1,10 @@
 import os
 from typing import List, Dict, Any, Tuple
-from settings import FAISS_INDEX_PATH, BASE_DIR
+from settings import FAISS_INDEX_PATH, DATASET_JSON_PATH
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
+
+FAISS_REQUIRED_FILES = ("index.faiss", "index.pkl")
 
 # Embedding backends configuration
 def get_embeddings(backend: str = "huggingface", openai_api_key: str = None):
@@ -66,13 +68,51 @@ def load_vector_store(index_path: str = None, backend: str = "huggingface", open
     Loads an existing FAISS index from disk.
     """
     index_path = index_path or FAISS_INDEX_PATH
-    if not os.path.exists(index_path):
-        raise FileNotFoundError(f"FAISS index folder not found at: {index_path}")
-        
+    if not is_valid_faiss_index(index_path):
+        vector_store = rebuild_vector_store(index_path, backend, openai_api_key)
+        if vector_store is not None:
+            return vector_store
+
+        missing_files = [
+            filename
+            for filename in FAISS_REQUIRED_FILES
+            if not os.path.exists(os.path.join(index_path, filename))
+        ]
+        if not os.path.isdir(index_path):
+            raise FileNotFoundError(f"FAISS index folder not found at: {index_path}")
+        raise FileNotFoundError(
+            f"FAISS index at {index_path} is incomplete. Missing: {', '.join(missing_files)}. "
+            "Run `python retriever.py` to rebuild it."
+        )
+
     embeddings_model = get_embeddings(backend, openai_api_key)
     # allow_dangerous_deserialization=True is required to load FAISS pickles locally
     vector_store = FAISS.load_local(index_path, embeddings_model, allow_dangerous_deserialization=True)
     return vector_store
+
+def is_valid_faiss_index(index_path: str) -> bool:
+    """
+    A LangChain FAISS index needs both the vector file and docstore metadata.
+    """
+    return os.path.isdir(index_path) and all(
+        os.path.exists(os.path.join(index_path, filename))
+        for filename in FAISS_REQUIRED_FILES
+    )
+
+def rebuild_vector_store(index_path: str, backend: str = "huggingface", openai_api_key: str = None):
+    """
+    Rebuilds the FAISS index from the local hotel dataset when the saved index
+    is missing or incomplete.
+    """
+    if not os.path.exists(DATASET_JSON_PATH):
+        return None
+
+    print(f"FAISS index missing or incomplete at: {index_path}")
+    print("Rebuilding FAISS index from hotel_dataset.json...")
+    from preprocess import preprocess_dataset
+
+    chunks = preprocess_dataset(DATASET_JSON_PATH)
+    return build_vector_store(chunks, index_path=index_path, backend=backend, openai_api_key=openai_api_key)
 
 def retrieve_chunks(query: str, index_path: str = None, backend: str = "huggingface", k: int = 3, openai_api_key: str = None) -> List[Dict[str, Any]]:
     """
@@ -104,11 +144,10 @@ if __name__ == "__main__":
     from preprocess import preprocess_dataset
     import json
     
-    dataset_json = os.path.join(BASE_DIR, "hotel_dataset.json")
-    if not os.path.exists(dataset_json):
+    if not os.path.exists(DATASET_JSON_PATH):
         print("Please run generate_dataset.py first!")
     else:
-        chunks = preprocess_dataset(dataset_json)
+        chunks = preprocess_dataset(DATASET_JSON_PATH)
         # Build using local Hugging Face model
         build_vector_store(chunks, backend="huggingface")
         
