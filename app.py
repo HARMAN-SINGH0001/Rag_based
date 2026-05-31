@@ -5,7 +5,7 @@ from settings import IS_RENDER
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 EMBEDDING_BACKENDS = {
-    "HuggingFace (local)": "huggingface",
+    "HuggingFace (local)": "lexical",
     "Ollama (local)": "ollama",
     "OpenAI API": "openai"
 }
