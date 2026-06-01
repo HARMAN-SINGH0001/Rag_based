@@ -10,6 +10,10 @@ StayChat AI answers hotel questions from a curated JSON knowledge base. It retri
 
 The hosted app is designed for Render Web Services: no Ollama, no local model server, no local vector database, no ngrok, and no manual process running on your personal computer.
 
+## Live Demo
+
+[https://rag-based-5-iy9i.onrender.com/](https://rag-based-5-iy9i.onrender.com/)
+
 ## Highlights
 
 | Capability | What it does |
