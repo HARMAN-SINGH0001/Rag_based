@@ -1,113 +1,171 @@
-# RAG-Based Hotel Q&A System
+# StayChat AI: Hotel RAG Assistant
 
-A Retrieval-Augmented Generation (RAG) system for answering natural language queries about hotels using a curated text dataset. The system combines semantic search over a FAISS vector store with a language model (local Ollama, Hugging Face, or OpenAI) to produce accurate, context-grounded responses with strict hallucination controls.
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Flask](https://img.shields.io/badge/Flask-Web%20App-black)
+![FAISS](https://img.shields.io/badge/Vector%20Store-FAISS-green)
+![Grok](https://img.shields.io/badge/LLM-Grok%20Ready-purple)
+![Render](https://img.shields.io/badge/Deploy-Render-46E3B7)
 
----
+StayChat AI is a Retrieval-Augmented Generation (RAG) hotel Q&A system that answers natural language questions from a curated hotel knowledge base. It retrieves the most relevant hotel records, applies hallucination controls, and generates grounded answers using Grok, OpenAI, Ollama, or a built-in deterministic fallback.
 
-## Architecture Overview
+The app is designed to run locally and deploy cleanly on Render.
+
+## Highlights
+
+| Capability | What it does |
+| --- | --- |
+| Grounded hotel Q&A | Answers questions about WiFi, breakfast, cancellation, beach access, amenities, location, and reviews. |
+| FAISS retrieval | Finds relevant chunks from the hotel dataset using vector search or hosted lexical fallback. |
+| Grok-ready deployment | Uses `XAI_API_KEY` on Render with `grok-4.3` by default. |
+| Hallucination control | Blocks weak matches and forces context-only answers with source citations. |
+| Multiple backends | Supports Grok, OpenAI, Ollama, Hugging Face embeddings, and mock fallback. |
+| Web interfaces | Includes a polished Flask web app and a Streamlit dashboard. |
+
+## Architecture
 
 ```mermaid
 graph TD
-    A[Raw Hotel Data] --> B[preprocess.py: Clean & Chunk]
-    B --> C[retriever.py: Embed via Sentence-Transformers / Ollama]
-    C --> D[Build FAISS Index]
-    E[User Query] --> F[retriever.py: Semantic Search]
-    D --> F
-    F --> G{Hallucination Control: Score Check}
-    G -- Score > Threshold --> H[Refusal: I do not have enough info]
-    G -- Score <= Threshold --> I[qa.py: Formulate Prompt with Citations]
-    I --> J[LLM: tinyllama / Grok / GPT / Mock]
-    J --> K[Final Answer]
+    A[Hotel Dataset] --> B[preprocess.py]
+    B --> C[Chunk + Contextualize]
+    C --> D[retriever.py]
+    D --> E[FAISS / Lexical Retrieval]
+    F[User Question] --> E
+    E --> G{Confidence Check}
+    G -- Low confidence --> H[Safe Refusal]
+    G -- Good match --> I[qa.py Prompt Builder]
+    I --> J[Grok / OpenAI / Ollama / Mock]
+    J --> K[Grounded Answer + Sources]
 ```
 
-The system is designed with a modular architecture:
-1. **Dataset**: 44 documents across 5 hotels (Grand Plaza Hotel, Seaside Haven Resort, Hotel X, Alpine Lodge, Sunrise B&B) spanning Descriptions, Amenities, Reviews, Policies, and Location Details.
-2. **Preprocessing**: Cleans raw text (HTML removal, whitespace normalization) and splits documents into small focus chunks (400 chars, 80 chars overlap). Each chunk is prefixed with contextual metadata (Hotel, Category) to maximize retrieval precision.
-3. **Retrieval**: Leverages a **FAISS vector database** populated with dense embeddings from `sentence-transformers/all-MiniLM-L6-v2` (default) or Ollama `nomic-embed-text`.
-4. **Generative QA & Hallucination Control**: Synthesizes responses using xAI Grok, local Ollama `tinyllama:chat`, OpenAI, or a high-fidelity mock model.
-5. **Streamlit UI**: A premium dark-themed visual dashboard showcasing chatting, visual retrieval inspect, metrics, and dataset browsing.
+## Project Structure
 
----
+| File | Purpose |
+| --- | --- |
+| `app.py` | Flask API and HTML web app entry point. |
+| `qa.py` | RAG orchestration, prompting, LLM calls, and fallback answers. |
+| `retriever.py` | FAISS loading, embedding selection, retrieval, and lexical fallback. |
+| `preprocess.py` | Cleans and chunks the hotel dataset. |
+| `generate_dataset.py` | Generates the synthetic hotel dataset. |
+| `evaluate.py` | Runs retrieval metrics and hallucination-control checks. |
+| `templates/index.html` | Main Flask web UI. |
+| `streamlit_app.py` | Streamlit dashboard version. |
+| `render.yaml` | Render deployment configuration. |
 
-## Hallucination Control Mechanics
+## LLM And Search Backends
 
-To ensure the system answers **only** from the provided context and avoids hallucination, the following controls are implemented:
+| Layer | Options |
+| --- | --- |
+| Answer generation | Grok API, OpenAI API, local Ollama, built-in mock fallback |
+| Retrieval | FAISS with Hugging Face embeddings, OpenAI embeddings, Ollama embeddings, lexical fallback |
+| Hosted behavior | Render defaults to hosted-safe lexical retrieval and Grok answer generation |
 
-1. **Similarity / Confidence Thresholding**:
-   - For every query, the system measures the semantic distance of the retrieved chunks in FAISS (L2 distance).
-   - If the L2 distance of the top match exceeds a preconfigured threshold (e.g. `0.75`), the system immediately skips LLM generation and returns a standard refusal: *"I do not have enough information in my context to answer this query."* This prevents the LLM from trying to answer questions for which there is no data.
-2. **Strict Context-Only Prompting**:
-   - The LLM is instructed via a strict system prompt to act as a factual assistant. It is strictly forbidden from using general knowledge, making assumptions, or extrapolating beyond the facts provided in the context.
-3. **Mandatory Source Citations**:
-   - The prompt requires the LLM to cite the source Document IDs (e.g. `[DOC-33]`) for every fact it states. This forces grounding and makes verification straightforward.
+## Hallucination Controls
 
----
+StayChat AI is built to avoid unsupported answers:
 
-## Automated Evaluation Metrics
+1. It retrieves the closest hotel records for the question.
+2. It checks the best match distance against a configurable threshold.
+3. If confidence is low, it returns:
 
-Retrieval quality is programmatically measured on three standard test queries using a top-k ($k=3$) constraint:
+```text
+I do not have enough information in my context to answer this query.
+```
 
-1. **Precision@k**: Measures the proportion of retrieved chunks that are relevant.
-   $$\text{Precision@k} = \frac{\text{Relevant Chunks Retrieved in Top-k}}{k}$$
-2. **Recall@k**: Measures the proportion of ground truth relevant chunks that are retrieved.
-   $$\text{Recall@k} = \frac{\text{Relevant Chunks Retrieved in Top-k}}{\text{Total Ground Truth Relevant Chunks}}$$
-3. **Mean Reciprocal Rank (MRR)**: Measures the reciprocal rank of the first relevant document.
-   $$\text{MRR} = \frac{1}{\text{Rank of first relevant chunk}}$$
+4. If confidence is acceptable, it sends only the retrieved context to the LLM.
+5. The prompt asks the model to cite document IDs such as `[DOC-33]`.
 
----
+## Quick Start
 
-## Setup & Running Instructions
+### 1. Install Dependencies
 
-### 1. Prerequisites
-Ensure you have Python 3.9+ installed.
-
-### 2. Install Dependencies
-Install all required libraries using the provided `requirements.txt`:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Generate the Dataset
-Create the synthetic JSON and TXT documents:
+### 2. Generate Dataset
+
 ```bash
 python generate_dataset.py
 ```
-This generates `hotel_dataset.json` and populates the `dataset/` directory.
 
-### 4. Build the FAISS Index
-Build the vector store from the preprocessed dataset:
+This creates `hotel_dataset.json` and fills the `dataset/` folder.
+
+### 3. Build The FAISS Index
+
 ```bash
-python rag.py
+python retriever.py
 ```
-This creates the FAISS index under `faiss_index/` using the default local Hugging Face embedding model.
 
-### 5. Run Evaluation
-Run the automated evaluation suite:
-```bash
-python evaluate.py
-```
-This executes the RAG pipeline for the three assessment queries, computes Precision, Recall, and MRR, and demonstrates hallucination control.
+This builds the local `faiss_index/` folder.
 
-### 6. Launch the HTML Web App
-Run the new interactive HTML dashboard powered by Flask:
+### 4. Run The Flask App
+
 ```bash
 python app.py
 ```
-Open the browser at `http://localhost:8503`.
 
-### Render Deployment with Grok
+Open:
 
-The Flask app supports Grok through xAI's OpenAI-compatible API. In Render, add these environment variables:
+```text
+http://localhost:8503
+```
+
+### 5. Run Evaluation
+
+```bash
+python evaluate.py
+```
+
+The evaluation script reports retrieval quality using Precision@k, Recall@k, and Mean Reciprocal Rank.
+
+## Render Deployment With Grok
+
+The app is ready for Render through `render.yaml`.
+
+Add this environment variable in the Render dashboard:
 
 ```bash
 XAI_API_KEY=your_xai_key
+```
+
+Optional model override:
+
+```bash
 XAI_MODEL=grok-4.3
 ```
 
-`render.yaml` already declares `XAI_API_KEY` as a secret (`sync: false`) and defaults `XAI_MODEL` to `grok-4.3`. The Flask web UI uses **Grok answer** by default. If the key is missing or invalid, the app falls back to the built-in answer mode instead of crashing.
---- 
+`render.yaml` already declares `XAI_API_KEY` as a secret using `sync: false`, so the real key should be added only in Render's Environment tab. Do not commit API keys to GitHub.
+
+When deployed, the Flask UI uses **Grok answer** by default. If the Grok key is missing or an API call fails, the app falls back to the built-in answer mode instead of crashing.
+
+## Example Questions
+
+```text
+Which hotels have free WiFi and complimentary breakfast?
+```
+
+```text
+What is the cancellation policy of Hotel X?
+```
+
+```text
+Suggest a hotel with excellent reviews near the beach.
+```
+
+## Evaluation Metrics
+
+| Metric | Meaning |
+| --- | --- |
+| Precision@k | How many retrieved records are relevant. |
+| Recall@k | How many expected relevant records were retrieved. |
+| MRR | How high the first relevant result appears. |
 
 ## Known Limitations
 
-- **Hardware Dependencies**: Local loading of `sentence-transformers` via PyTorch takes ~10-15 seconds to load on typical CPUs during startup.
-- **Context Size Constraints**: If the retrieved text chunks are very large, smaller local models like `tinyllama:chat` can sometimes lose context depth. This is mitigated by our small chunk size strategy (400 characters).
+- Local Hugging Face embedding models can take several seconds to load on CPU.
+- Ollama backends require Ollama running locally and are not suitable for Render free hosting.
+- Small local models can miss details if too much context is sent, so the app uses compact chunks and strict prompting.
+
+## Tech Stack
+
+`Python` · `Flask` · `FAISS` · `LangChain` · `sentence-transformers` · `xAI Grok` · `OpenAI SDK` · `Render` · `Streamlit`
