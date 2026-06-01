@@ -16,7 +16,7 @@ graph TD
     F --> G{Hallucination Control: Score Check}
     G -- Score > Threshold --> H[Refusal: I do not have enough info]
     G -- Score <= Threshold --> I[qa.py: Formulate Prompt with Citations]
-    I --> J[LLM: tinyllama / GPT / Mock]
+    I --> J[LLM: tinyllama / Grok / GPT / Mock]
     J --> K[Final Answer]
 ```
 
@@ -24,7 +24,7 @@ The system is designed with a modular architecture:
 1. **Dataset**: 44 documents across 5 hotels (Grand Plaza Hotel, Seaside Haven Resort, Hotel X, Alpine Lodge, Sunrise B&B) spanning Descriptions, Amenities, Reviews, Policies, and Location Details.
 2. **Preprocessing**: Cleans raw text (HTML removal, whitespace normalization) and splits documents into small focus chunks (400 chars, 80 chars overlap). Each chunk is prefixed with contextual metadata (Hotel, Category) to maximize retrieval precision.
 3. **Retrieval**: Leverages a **FAISS vector database** populated with dense embeddings from `sentence-transformers/all-MiniLM-L6-v2` (default) or Ollama `nomic-embed-text`.
-4. **Generative QA & Hallucination Control**: Synthesizes responses using local Ollama `tinyllama:chat`, OpenAI, or a high-fidelity mock model.
+4. **Generative QA & Hallucination Control**: Synthesizes responses using xAI Grok, local Ollama `tinyllama:chat`, OpenAI, or a high-fidelity mock model.
 5. **Streamlit UI**: A premium dark-themed visual dashboard showcasing chatting, visual retrieval inspect, metrics, and dataset browsing.
 
 ---
@@ -94,7 +94,18 @@ Run the new interactive HTML dashboard powered by Flask:
 python app.py
 ```
 Open the browser at `http://localhost:8503`.
----
+
+### Render Deployment with Grok
+
+The Flask app supports Grok through xAI's OpenAI-compatible API. In Render, add these environment variables:
+
+```bash
+XAI_API_KEY=your_xai_key
+XAI_MODEL=grok-4.3
+```
+
+`render.yaml` already declares `XAI_API_KEY` as a secret (`sync: false`) and defaults `XAI_MODEL` to `grok-4.3`. The Flask web UI uses **Grok answer** by default. If the key is missing or invalid, the app falls back to the built-in answer mode instead of crashing.
+--- 
 
 ## Known Limitations
 

@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flask import Flask, jsonify, render_template, request
 from werkzeug.exceptions import HTTPException
@@ -17,7 +18,8 @@ EMBEDDING_BACKENDS = {
 LLM_BACKENDS = {
     "Mock (High-Fidelity)": "mock",
     "Ollama (tinyllama:chat)": "ollama",
-    "OpenAI API": "openai"
+    "OpenAI API": "openai",
+    "Grok API": "grok"
 }
 
 @app.route("/")
@@ -33,11 +35,12 @@ def query():
             return jsonify({"error": "Question cannot be empty."}), 400
 
         embedding_backend = EMBEDDING_BACKENDS.get(payload.get("embedding_backend", "HuggingFace (local)"), "lexical")
-        llm_backend = LLM_BACKENDS.get(payload.get("llm_backend", "Mock (High-Fidelity)"), "mock")
+        llm_backend = LLM_BACKENDS.get(payload.get("llm_backend", "Grok API"), "grok")
         k = int(payload.get("k", 3))
         hallucination_control = bool(payload.get("hallucination_control", True))
         confidence_threshold = float(payload.get("confidence_threshold", 0.75))
         openai_api_key = payload.get("openai_api_key") or None
+        xai_api_key = payload.get("xai_api_key") or None
     except Exception as exc:
         return jsonify({"error": f"Invalid request payload: {exc}"}), 400
 
@@ -50,7 +53,6 @@ def query():
         fallback_notes.append("Ollama LLM is local-only on Render, so Mock answers were used.")
 
     if (embedding_backend == "openai" or llm_backend == "openai") and not openai_api_key:
-        import os
         openai_api_key = os.getenv("OPENAI_API_KEY")
         if not openai_api_key:
             if embedding_backend == "openai":
@@ -59,6 +61,11 @@ def query():
             if llm_backend == "openai":
                 llm_backend = "mock"
                 fallback_notes.append("OpenAI LLM needs an API key, so Mock answers were used.")
+    if llm_backend == "grok" and not xai_api_key:
+        xai_api_key = os.getenv("XAI_API_KEY")
+        if not xai_api_key:
+            llm_backend = "mock"
+            fallback_notes.append("Grok answers need an xAI API key, so Mock answers were used.")
 
     try:
         result = answer_query_rag(
@@ -68,7 +75,8 @@ def query():
             k=k,
             hallucination_control=hallucination_control,
             confidence_threshold=confidence_threshold,
-            openai_api_key=openai_api_key
+            openai_api_key=openai_api_key,
+            xai_api_key=xai_api_key
         )
         if fallback_notes:
             result["fallback_notes"] = fallback_notes

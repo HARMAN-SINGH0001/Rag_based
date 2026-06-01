@@ -108,6 +108,7 @@
             <div class="control-group">
               <label for="llm-backend">Answer style</label>
               <select id="llm-backend">
+                <option value="Grok API">Grok answer</option>
                 <option value="Mock (High-Fidelity)">Built-in answer</option>
                 <option value="Ollama (tinyllama:chat)">Answer on this computer</option>
                 <option value="OpenAI API">OpenAI answer</option>
@@ -122,8 +123,8 @@
               <input id="threshold" type="range" min="0.2" max="1.5" step="0.05" value="0.75" />
             </div>
             <div class="control-group full-width">
-              <label for="openai-key">OpenAI key</label>
-              <input id="openai-key" type="password" placeholder="Only needed if you choose OpenAI" />
+              <label for="api-key">API key</label>
+              <input id="api-key" type="password" placeholder="Optional for Grok/OpenAI testing" />
             </div>
           </div>
           <div id="backend-note" class="inline-note">Default setup is ready for hosting.</div>
@@ -245,7 +246,7 @@
     const sourceSummary = document.getElementById('source-summary');
     const embeddingBackend = document.getElementById('embedding-backend');
     const llmBackend = document.getElementById('llm-backend');
-    const openaiKey = document.getElementById('openai-key');
+    const apiKey = document.getElementById('api-key');
 
     let selectedHotel = '';
     let lastAnswerText = '';
@@ -336,7 +337,8 @@
         k: Number(topkInput.value),
         hallucination_control: true,
         confidence_threshold: Number(thresholdInput.value),
-        openai_api_key: openaiKey.value || null
+        openai_api_key: llmBackend.value.includes('OpenAI') || embeddingBackend.value.includes('OpenAI') ? apiKey.value || null : null,
+        xai_api_key: llmBackend.value.includes('Grok') ? apiKey.value || null : null
       };
 
       setLoading(payload);
@@ -492,8 +494,11 @@
     function updateBackendNote() {
       const wantsOllama = embeddingBackend.value.includes('Ollama') || llmBackend.value.includes('Ollama');
       const wantsOpenAi = embeddingBackend.value.includes('OpenAI') || llmBackend.value.includes('OpenAI');
+      const wantsGrok = llmBackend.value.includes('Grok');
       if (wantsOllama) {
         backendNote.innerText = 'Computer-only options will switch to the hosted setup online.';
+      } else if (wantsGrok) {
+        backendNote.innerText = 'Grok uses XAI_API_KEY from hosting settings, or the optional key field here.';
       } else if (wantsOpenAi) {
         backendNote.innerText = 'OpenAI needs a key here or in your hosting settings.';
       } else {
@@ -508,7 +513,8 @@
         .replace('Ollama LLM is local-only on Render, so Mock answers were used.', 'The hosted site used the built-in answer mode.')
         .replace('OpenAI embeddings need an API key, so HuggingFace embeddings were used.', 'OpenAI search needs a key, so the standard search was used.')
         .replace('OpenAI embeddings need an API key, so hosted lexical search was used.', 'OpenAI search needs a key, so the hosted search was used.')
-        .replace('OpenAI LLM needs an API key, so Mock answers were used.', 'OpenAI answers need a key, so the built-in answer mode was used.');
+        .replace('OpenAI LLM needs an API key, so Mock answers were used.', 'OpenAI answers need a key, so the built-in answer mode was used.')
+        .replace('Grok answers need an xAI API key, so Mock answers were used.', 'Grok answers need an xAI API key, so the built-in answer mode was used.');
     }
 
     function escapeHtml(value) {

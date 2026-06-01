@@ -274,7 +274,7 @@ with st.sidebar:
     
     llm_backend = st.selectbox(
         "LLM Generation Backend",
-        ["Mock (High-Fidelity)", "Ollama (tinyllama:chat)", "OpenAI API"],
+        ["Mock (High-Fidelity)", "Ollama (tinyllama:chat)", "Grok API", "OpenAI API"],
         index=0,
         help="Language model used to synthesize context-grounded responses."
     )
@@ -296,6 +296,7 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("API Keys (Optional)")
     openai_key = st.text_input("OpenAI API Key", type="password", placeholder="sk-...")
+    xai_key = st.text_input("xAI API Key", type="password", placeholder="xai-...")
     
     st.markdown("---")
     st.caption("StayChat Private Limited · AI/ML Track Assessment")
@@ -310,6 +311,7 @@ emb_mapping = {
 llm_mapping = {
     "Mock (High-Fidelity)": "mock",
     "Ollama (tinyllama:chat)": "ollama",
+    "Grok API": "grok",
     "OpenAI API": "openai"
 }
 
@@ -372,7 +374,8 @@ with tab1:
                         k=k_value,
                         hallucination_control=hallucination_ctrl,
                         confidence_threshold=confidence_thresh,
-                        openai_api_key=openai_key
+                        openai_api_key=openai_key,
+                        xai_api_key=xai_key
                     )
                     st.session_state.last_rag_result = res
                     st.session_state.query_history.append(user_query)

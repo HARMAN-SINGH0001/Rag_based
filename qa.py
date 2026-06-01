@@ -82,6 +82,33 @@ def query_openai_llm(prompt: str, api_key: str = None, model_name: str = "gpt-3.
     )
     return response.choices[0].message.content.strip()
 
+def query_grok_llm(prompt: str, api_key: str = None, model_name: str = None) -> str:
+    """
+    Queries xAI Grok through its OpenAI-compatible API.
+    """
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=api_key or os.getenv("XAI_API_KEY"),
+        base_url=os.getenv("XAI_BASE_URL", "https://api.x.ai/v1"),
+    )
+    model = model_name or os.getenv("XAI_MODEL", "grok-4.3")
+
+    if hasattr(client, "responses"):
+        response = client.responses.create(
+            model=model,
+            input=[{"role": "user", "content": prompt}],
+            store=False,
+        )
+        return response.output_text.strip()
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.0,
+    )
+    return response.choices[0].message.content.strip()
+
 def mock_llm_qa(query: str, context_str: str) -> str:
     """
     A high-fidelity deterministic rule-based fallback model.
@@ -182,11 +209,12 @@ def answer_query_rag(
     query: str,
     index_path: str = None,
     backend_embeddings: str = "huggingface",
-    backend_llm: str = "mock", # "mock", "ollama", "openai"
+    backend_llm: str = "mock", # "mock", "ollama", "openai", "grok"
     k: int = 3,
     hallucination_control: bool = True,
     confidence_threshold: float = 0.75, # threshold for L2 distance (lower = more strict)
-    openai_api_key: str = None
+    openai_api_key: str = None,
+    xai_api_key: str = None
 ) -> Dict[str, Any]:
     """
     Executes the full RAG pipeline for a user query:
@@ -230,6 +258,8 @@ def answer_query_rag(
             answer = query_ollama_llm(prompt)
         elif backend_llm == "openai":
             answer = query_openai_llm(prompt, openai_api_key)
+        elif backend_llm == "grok":
+            answer = query_grok_llm(prompt, xai_api_key)
         else: # mock mode
             answer = mock_llm_qa(query, context_str)
             used_llm = False
