@@ -52,7 +52,7 @@ def calculate_metrics(retrieved_docs: List[Dict[str, Any]], ground_truth: Set[st
         "retrieved_list": retrieved_ids
     }
 
-def run_evaluation(backend_embeddings: str = "huggingface", backend_llm: str = "mock", k: int = 3):
+def run_evaluation(backend_embeddings: str = "lexical", backend_llm: str = "mock", k: int = 3):
     print("======================================================================")
     print("                  RAG SYSTEM EVALUATION REPORT                        ")
     print("======================================================================\n")
@@ -154,12 +154,12 @@ def run_evaluation(backend_embeddings: str = "huggingface", backend_llm: str = "
     print(f"  Blocked by Threshold? {res_off.get('threshold_blocked', False)}")
     print(f"  Answer: \"{hallucinated_ans}\"")
     print("\nQualitative Ablation Analysis:")
-    print("  In Scenario A, the system detects that the best retrieved chunk has an L2 distance > 0.75,")
-    print("  indicating that there is no relevant information about 'Hotel Y' in our vector database.")
+    print("  In Scenario A, the system detects that the best retrieved match is too weak or missing,")
+    print("  indicating that there is no relevant information about 'Hotel Y' in the hosted dataset.")
     print("  The query is blocked and a standard refusal is returned immediately.")
     print("  In Scenario B, without thresholding, the closest (but irrelevant) chunks are sent to the LLM,")
     print("  and because of the weak prompt, the LLM hallucinates an arbitrary pet policy for Hotel Y.")
     print("======================================================================")
 
 if __name__ == "__main__":
-    run_evaluation(backend_embeddings="huggingface", backend_llm="mock", k=3)
+    run_evaluation(backend_embeddings="lexical", backend_llm="mock", k=3)

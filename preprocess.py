@@ -1,6 +1,5 @@
 import re
 from typing import List, Dict, Any
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def clean_text(text: str) -> str:
     """
@@ -37,20 +36,7 @@ def chunk_document(doc: Dict[str, Any], chunk_size: int = 400, chunk_overlap: in
     raw_content = doc.get("content", "")
     cleaned_content = clean_text(raw_content)
     
-    # Format a header that includes metadata to inject context directly into the text chunk
-    # This helps the embedding model associate the text with the specific hotel and category.
-    metadata_prefix = f"Hotel: {doc.get('hotel')} | Category: {doc.get('category')} | Title: {doc.get('title')} | Content: "
-    
-    # Initialize the splitter
-    # Note: We split the cleaned content, and then append metadata to the text of the chunks.
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        length_function=len,
-        separators=["\n\n", "\n", ".", "?", "!", " ", ""]
-    )
-    
-    splits = splitter.split_text(cleaned_content)
+    splits = split_text(cleaned_content, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     
     chunks = []
     for idx, split in enumerate(splits):
@@ -68,6 +54,47 @@ def chunk_document(doc: Dict[str, Any], chunk_size: int = 400, chunk_overlap: in
             "contextualized_content": contextualized_content
         })
         
+    return chunks
+
+def split_text(text: str, chunk_size: int = 400, chunk_overlap: int = 80) -> List[str]:
+    """
+    Lightweight recursive-style text splitter used to avoid heavy LangChain
+    dependencies in the hosted Render app.
+    """
+    if not text:
+        return []
+
+    chunk_size = max(1, int(chunk_size))
+    chunk_overlap = max(0, min(int(chunk_overlap), chunk_size - 1))
+    chunks = []
+    start = 0
+    text_length = len(text)
+
+    while start < text_length:
+        target_end = min(start + chunk_size, text_length)
+        end = target_end
+
+        if target_end < text_length:
+            search_window = text[start:target_end]
+            split_at = max(
+                search_window.rfind("\n\n"),
+                search_window.rfind("\n"),
+                search_window.rfind(". "),
+                search_window.rfind("? "),
+                search_window.rfind("! "),
+                search_window.rfind(" "),
+            )
+            if split_at > chunk_size * 0.45:
+                end = start + split_at + 1
+
+        chunk = text[start:end].strip()
+        if chunk:
+            chunks.append(chunk)
+
+        if end >= text_length:
+            break
+        start = max(end - chunk_overlap, start + 1)
+
     return chunks
 
 def preprocess_dataset(dataset_path: str, chunk_size: int = 400, chunk_overlap: int = 80) -> List[Dict[str, Any]]:

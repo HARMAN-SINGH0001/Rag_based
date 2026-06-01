@@ -267,14 +267,14 @@ with st.sidebar:
     # Model Selection
     embedding_backend = st.selectbox(
         "Embedding Backend",
-        ["HuggingFace (local)", "Ollama (local)", "OpenAI API"],
+        ["Hosted search"],
         index=0,
-        help="Model used to compile semantic embeddings (all-MiniLM-L6-v2 vs nomic-embed-text)."
+        help="Hosted search is the Render-safe default."
     )
     
     llm_backend = st.selectbox(
         "LLM Generation Backend",
-        ["Mock (High-Fidelity)", "Ollama (tinyllama:chat)", "Grok API", "OpenAI API"],
+        ["Mock (High-Fidelity)", "Grok API", "OpenAI API"],
         index=0,
         help="Language model used to synthesize context-grounded responses."
     )
@@ -303,14 +303,11 @@ with st.sidebar:
 
 # Mapping selections to backend strings
 emb_mapping = {
-    "HuggingFace (local)": "huggingface",
-    "Ollama (local)": "ollama",
-    "OpenAI API": "openai"
+    "Hosted search": "lexical"
 }
 
 llm_mapping = {
     "Mock (High-Fidelity)": "mock",
-    "Ollama (tinyllama:chat)": "ollama",
     "Grok API": "grok",
     "OpenAI API": "openai"
 }

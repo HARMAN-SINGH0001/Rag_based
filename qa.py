@@ -1,8 +1,10 @@
 import os
 import re
-from typing import List, Dict, Any, Tuple
-from settings import FAISS_INDEX_PATH
+import logging
+from typing import List, Dict, Any
 from retriever import retrieve_chunks
+
+logger = logging.getLogger(__name__)
 
 STRICT_SYSTEM_PROMPT = """You are a helpful and strict AI assistant for StayChat AI.
 Answer the user's question ONLY using the provided facts in the Context section below.
@@ -46,37 +48,19 @@ def format_context(retrieved_chunks: List[Dict[str, Any]]) -> str:
         )
     return "\n\n".join(context_parts)
 
-def query_ollama_llm(prompt: str, model_name: str = "tinyllama:chat") -> str:
-    """
-    Queries a local Ollama instance for text generation.
-    """
-    import requests
-    url = "http://localhost:11434/api/generate"
-    payload = {
-        "model": model_name,
-        "prompt": prompt,
-        "stream": False,
-        "options": {
-            "temperature": 0.0  # Zero temperature for deterministic, factual output
-        }
-    }
-    try:
-        response = requests.post(url, json=payload, timeout=20)
-        if response.status_code == 200:
-            return response.json().get("response", "").strip()
-        else:
-            raise RuntimeError(f"Ollama error (status {response.status_code}): {response.text}")
-    except Exception as e:
-        raise RuntimeError(f"Failed to connect to local Ollama: {e}")
-
 def query_openai_llm(prompt: str, api_key: str = None, model_name: str = "gpt-3.5-turbo") -> str:
     """
     Queries OpenAI API for completion.
     """
     from openai import OpenAI
-    client = OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
+
+    resolved_key = api_key or os.getenv("OPENAI_API_KEY")
+    if not resolved_key:
+        raise RuntimeError("OPENAI_API_KEY is required for OpenAI answers.")
+
+    client = OpenAI(api_key=resolved_key, timeout=30.0, max_retries=1)
     response = client.chat.completions.create(
-        model=model_name,
+        model=os.getenv("OPENAI_MODEL", model_name),
         messages=[{"role": "user", "content": prompt}],
         temperature=0.0
     )
@@ -88,19 +72,17 @@ def query_grok_llm(prompt: str, api_key: str = None, model_name: str = None) -> 
     """
     from openai import OpenAI
 
+    resolved_key = api_key or os.getenv("XAI_API_KEY")
+    if not resolved_key:
+        raise RuntimeError("XAI_API_KEY is required for Grok answers.")
+
     client = OpenAI(
-        api_key=api_key or os.getenv("XAI_API_KEY"),
+        api_key=resolved_key,
         base_url=os.getenv("XAI_BASE_URL", "https://api.x.ai/v1"),
+        timeout=30.0,
+        max_retries=1,
     )
     model = model_name or os.getenv("XAI_MODEL", "grok-4.3")
-
-    if hasattr(client, "responses"):
-        response = client.responses.create(
-            model=model,
-            input=[{"role": "user", "content": prompt}],
-            store=False,
-        )
-        return response.output_text.strip()
 
     response = client.chat.completions.create(
         model=model,
@@ -208,8 +190,8 @@ def synthesize_grounded_answer(context_str: str) -> str:
 def answer_query_rag(
     query: str,
     index_path: str = None,
-    backend_embeddings: str = "huggingface",
-    backend_llm: str = "mock", # "mock", "ollama", "openai", "grok"
+    backend_embeddings: str = "lexical",
+    backend_llm: str = "mock", # "mock", "openai", "grok"
     k: int = 3,
     hallucination_control: bool = True,
     confidence_threshold: float = 0.75, # threshold for L2 distance (lower = more strict)
@@ -224,12 +206,10 @@ def answer_query_rag(
     4. Formulates and returns the final answer along with source document metadata.
     """
     # 1. Retrieve chunks
-    # resolve default index path from settings if not provided
-    index_path = index_path or FAISS_INDEX_PATH
     retrieved = retrieve_chunks(query, index_path, backend_embeddings, k, openai_api_key)
     
     # 2. Check threshold if hallucination control is enabled
-    # In FAISS L2 distance, 0.0 is perfect match. Chunks with distance > threshold are considered irrelevant.
+    # Lower distance means better match. Chunks above the threshold are treated as too weak.
     best_distance = retrieved[0]["distance"] if retrieved else 99.0
     
     if hallucination_control and best_distance > confidence_threshold:
@@ -254,17 +234,15 @@ def answer_query_rag(
     answer = ""
     used_llm = True
     try:
-        if backend_llm == "ollama":
-            answer = query_ollama_llm(prompt)
-        elif backend_llm == "openai":
+        if backend_llm == "openai":
             answer = query_openai_llm(prompt, openai_api_key)
         elif backend_llm == "grok":
             answer = query_grok_llm(prompt, xai_api_key)
         else: # mock mode
             answer = mock_llm_qa(query, context_str)
             used_llm = False
-    except Exception as e:
-        print(f"LLM backend failed: {e}. Falling back to mock model answers.")
+    except Exception:
+        logger.exception("LLM backend failed; falling back to mock model answers")
         answer = mock_llm_qa(query, context_str)
         used_llm = False
         
@@ -293,7 +271,7 @@ if __name__ == "__main__":
     # Test RAG query
     test_query = "What is the cancellation policy of Hotel X?"
     print(f"Querying: '{test_query}'...")
-    res = answer_query_rag(test_query, backend_llm="mock")
+    res = answer_query_rag(test_query, backend_embeddings="lexical", backend_llm="mock")
     print("\nAnswer:")
     print(res["answer"])
     print("\nRetrieved Chunks details:")
